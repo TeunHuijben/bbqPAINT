@@ -9,10 +9,6 @@ Molecular counting from a single intensity trace
 
 ## Installation
 
-This package uses the modern `pyproject.toml` standard for configuration and dependencies.
-
-### From Source
-
 ```bash
 git clone https://github.com/yourusername/mcoast-python.git
 cd mcoast-python
