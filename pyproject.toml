@@ -14,8 +14,12 @@ authors = [
     { email = "teunhuijben@hotmail.com", name = "Teun Huijben" },
 ]
 dynamic = ["version"]
-dependencies = []
-
+dependencies = [
+    "numpy>=1.20.0",
+    "scipy>=1.7.0",
+    "matplotlib>=3.3.0",
+    "scikit-learn>=1.0.0",
+]
 [tool.hatch.version]
 path = "src/mcoast/__init__.py"
 
@@ -25,7 +29,8 @@ only-include = ["src"]
 # extras
 # https://peps.python.org/pep-0621/#dependencies-optional-dependencies
 [project.optional-dependencies]
-test = ["pytest>=6.0"]
+dev = ["pytest>=6.0", "pre-commit>=4.0.0"]
+all = ["mcoast[dev]"]
 
 [project.urls]
 homepage = "https://github.com/TeunHuijben/mcoast"
