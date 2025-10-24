@@ -1,4 +1,4 @@
-# mcoast
+# mCOAST
 
 [![License](https://img.shields.io/pypi/l/mcoast.svg?color=green)](https://github.com/TeunHuijben/mcoast/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/mcoast.svg?color=green)](https://pypi.org/project/mcoast)
