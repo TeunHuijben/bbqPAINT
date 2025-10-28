@@ -6,15 +6,9 @@ using the mCOAST simulation module.
 """
 
 import os
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
-
-# Add the parent directory to the path to import mcoast
-sys.path.insert(
-    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
 
 from mcoast.simulation import SimulationParameters, TraceGenerator  # noqa: E402
 from mcoast.utils import Plotter  # noqa: E402
@@ -33,7 +27,7 @@ def main():
     sim_params.dt = 0.1  # Sampling time (s)
     sim_params.measurement_time = 1000  # Total measurement time (s)
     sim_params.single_molecule_intensity = 40.0  # Single molecule intensity
-    sim_params.snr = 3.0  # Signal-to-noise ratio
+    sim_params.snr = 20.0  # Signal-to-noise ratio
 
     # Validate parameters
     sim_params.validate()

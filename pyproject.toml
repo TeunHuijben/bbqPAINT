@@ -1,9 +1,7 @@
-# https://peps.python.org/pep-0517/
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-# https://peps.python.org/pep-0621/
 [project]
 name = "mcoast"
 description = "Molecular counting from a single intensity trace"
@@ -15,7 +13,7 @@ authors = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "numpy>=1.20.0",
+    "numpy>=1.20.0,<2.1",
     "scipy>=1.7.0",
     "matplotlib>=3.3.0",
     "scikit-learn>=1.0.0",
@@ -24,10 +22,8 @@ dependencies = [
 path = "src/mcoast/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-only-include = ["src"]
+packages = ["src/mcoast"]
 
-# extras
-# https://peps.python.org/pep-0621/#dependencies-optional-dependencies
 [project.optional-dependencies]
 dev = ["pytest>=6.0", "pre-commit>=3.0.0"]
 all = ["mcoast[dev]"]

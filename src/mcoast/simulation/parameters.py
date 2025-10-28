@@ -62,16 +62,6 @@ class SimulationParameters(BaseParameters):
 
         # Noise parameters
         self.noise_sigma: Optional[float] = None  # Background noise std
-        self.outlier_rate: Optional[float] = None  # Outlier contamination rate
-        self.outlier_value: Optional[float] = None  # Outlier intensity value
-
-        # Advanced models
-        self.model_type: str = "simple"  # simple, two_excited, dynamic_disorder
-        self.k_off1: Optional[float] = None  # For two excited states
-        self.k_off2: Optional[float] = None  # For two excited states
-        self.w1: Optional[float] = None  # Weight for two excited states
-        self.gamma_shape_on: Optional[float] = None  # For dynamic disorder
-        self.gamma_shape_off: Optional[float] = None  # For dynamic disorder
 
     def validate(self) -> None:
         """Validate simulation parameters"""
@@ -194,43 +184,3 @@ class AnalysisResults:
         print(f"Total rate (k_sum): {self.k_sum_fit:.3f}")
         print(f"Variance (s2): {self.s2_fit:.2f}")
         print(f"Third cumulant (C3): {self.c3_fit:.2f}")
-
-
-# Specialized parameter classes for different models
-class TwoExcitedStatesParameters(SimulationParameters):
-    """Parameters for two excited states model"""
-
-    def __init__(self):
-        super().__init__()
-        self.model_type = "two_excited"
-        self.k_off1: Optional[float] = None
-        self.k_off2: Optional[float] = None
-        self.w1: Optional[float] = None
-
-    def validate(self) -> None:
-        """Validate two excited states parameters"""
-        super().validate()
-        if self.k_off1 is not None and self.k_off1 <= 0:
-            raise ValueError("k_off1 must be positive")
-        if self.k_off2 is not None and self.k_off2 <= 0:
-            raise ValueError("k_off2 must be positive")
-        if self.w1 is not None and not (0 <= self.w1 <= 1):
-            raise ValueError("w1 must be between 0 and 1")
-
-
-class DynamicDisorderParameters(SimulationParameters):
-    """Parameters for dynamic disorder model"""
-
-    def __init__(self):
-        super().__init__()
-        self.model_type = "dynamic_disorder"
-        self.gamma_shape_on: Optional[float] = None
-        self.gamma_shape_off: Optional[float] = None
-
-    def validate(self) -> None:
-        """Validate dynamic disorder parameters"""
-        super().validate()
-        if self.gamma_shape_on is not None and self.gamma_shape_on <= 0:
-            raise ValueError("gamma_shape_on must be positive")
-        if self.gamma_shape_off is not None and self.gamma_shape_off <= 0:
-            raise ValueError("gamma_shape_off must be positive")

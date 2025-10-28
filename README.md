@@ -80,7 +80,6 @@ mcoast/
 ├── simulation/          # Trace generation and simulation
 │   ├── parameters.py   # Simulation parameter classes
 │   ├── trace_generator.py
-│   ├── state_machine.py
 │   └── noise_models.py
 ├── analysis/            # Parameter estimation and analysis
 │   ├── parameters.py   # Analysis parameter classes
