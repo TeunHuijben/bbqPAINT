@@ -7,6 +7,8 @@
 
 Molecular counting from a single intensity trace
 
+Teun branch
+
 ## Installation
 
 ```bash
