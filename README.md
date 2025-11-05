@@ -30,7 +30,7 @@ sim_params.n_emitters = 4      # Number of emitters
 sim_params.dt = 0.1           # Sampling time (s)
 sim_params.measurement_time = 1000  # Total measurement time (s)
 sim_params.single_molecule_intensity = 40.0
-sim_params.snr = 3.0          # Signal-to-noise ratio
+sim_params.sigma_noise = 2.0  # Noise standard deviation
 
 # Generate trace
 generator = TraceGenerator(sim_params)

@@ -36,7 +36,7 @@ def main():
     sim_params.dt = 0.1
     sim_params.measurement_time = 2000
     sim_params.single_molecule_intensity = 50.0
-    sim_params.snr = 5.0
+    sim_params.sigma_noise = 10.0
 
     sim_params.validate()
 

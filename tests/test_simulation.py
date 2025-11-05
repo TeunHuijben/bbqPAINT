@@ -31,7 +31,7 @@ class TestSimulationParameters:
         params.dt = 0.1
         params.measurement_time = 100.0
         params.single_molecule_intensity = 40.0
-        params.snr = 3.0
+        params.sigma_noise = 0.2
 
         # Should not raise
         params.validate()
@@ -150,7 +150,7 @@ class TestTraceGenerator:
         assert generator.params == basic_params
         assert generator.noise_sigma is not None
 
-    def test_noise_sigma_from_snr(self, basic_params):
+    def test_noise_sigma_parameter(self, basic_params):
         """Test noise sigma equals sigma_noise parameter"""
         generator = TraceGenerator(basic_params)
 

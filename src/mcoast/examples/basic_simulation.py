@@ -27,7 +27,7 @@ def main():
     sim_params.dt = 0.1  # Sampling time (s)
     sim_params.measurement_time = 1000  # Total measurement time (s)
     sim_params.single_molecule_intensity = 40.0  # Single molecule intensity
-    sim_params.snr = 20.0  # Signal-to-noise ratio
+    sim_params.sigma_noise = 2.0  # Noise standard deviation
 
     # Validate parameters
     sim_params.validate()
@@ -69,7 +69,7 @@ def main():
     print(f"Sampling time: {sim_params.dt} s")
     print(f"Measurement time: {sim_params.measurement_time} s")
     print(f"Single molecule intensity: {sim_params.single_molecule_intensity}")
-    print(f"Signal-to-noise ratio: {sim_params.snr}")
+    print(f"Noise standard deviation: {sim_params.sigma_noise}")
 
     # Calculate theoretical values
     k_sum_theory = sim_params.k_on + sim_params.k_off
