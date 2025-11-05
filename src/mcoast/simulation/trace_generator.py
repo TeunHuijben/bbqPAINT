@@ -9,7 +9,7 @@ from typing import Tuple
 
 import numpy as np
 
-from mcoast.simulation.noise_models import GaussianNoise
+from mcoast.simulation.noise_models import add_gaussian_noise
 from mcoast.simulation.parameters import SimulationParameters
 
 
@@ -26,21 +26,12 @@ class TraceGenerator:
         self.params = params
         self.params.validate()
 
-        # Initialize noise models
-        self.noise_model = self._setup_noise_model()
+        # Setup noise parameters
+        self.noise_sigma = self._calculate_noise_sigma()
 
-    def _setup_noise_model(self) -> GaussianNoise:
-        """Setup noise model based on parameters"""
-        if (
-            self.params.snr is not None
-            and self.params.single_molecule_intensity is not None
-        ):
-            sigma = (1 / self.params.snr) * self.params.single_molecule_intensity
-            return GaussianNoise(sigma)
-        elif self.params.noise_sigma is not None:
-            return GaussianNoise(self.params.noise_sigma)
-        else:
-            return GaussianNoise(0.0)  # No noise
+    def _calculate_noise_sigma(self) -> float:
+        """Calculate noise sigma based on parameters"""
+        return self.params.sigma_noise
 
     def generate_trace(self) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -64,7 +55,7 @@ class TraceGenerator:
             intensity += emitter_trace
 
         # Add noise
-        intensity = self.noise_model.add_noise(intensity)
+        intensity = add_gaussian_noise(intensity, self.noise_sigma)
 
         return time_points, intensity
 
@@ -158,58 +149,3 @@ class TraceGenerator:
     def generate_ensemble_trace(self) -> Tuple[np.ndarray, np.ndarray]:
         """Generate trace from multiple emitters (alias for generate_trace)"""
         return self.generate_trace()
-
-
-class SingleEmitterGenerator:
-    """Generate traces for individual emitters"""
-
-    def __init__(self, k_on: float, k_off: float, dt: float, measurement_time: float):
-        """
-        Initialize single emitter generator.
-
-        Args:
-            k_on: On transition rate
-            k_off: Off transition rate
-            dt: Sampling time
-            measurement_time: Total measurement time
-        """
-        self.k_on = k_on
-        self.k_off = k_off
-        self.dt = dt
-        self.measurement_time = measurement_time
-
-        # Calculate derived parameters
-        self.k_sum = k_on + k_off
-        self.p_up = k_on / self.k_sum
-        self.char_time = 1 / k_on + 1 / k_off
-
-    def generate_state_sequence(self) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Generate on/off state sequence.
-
-        Returns:
-            Tuple of (time_points, state_values)
-        """
-        # Placeholder implementation
-        n_frames = int(self.measurement_time / self.dt)
-        time_points = np.arange(n_frames) * self.dt
-
-        # Simple random state sequence for now
-        states = np.random.binomial(1, self.p_up, n_frames)
-
-        return time_points, states
-
-    def apply_time_averaging(self, state_sequence: np.ndarray) -> np.ndarray:
-        """
-        Apply time averaging to discrete states.
-
-        Args:
-            state_sequence: Binary state sequence
-
-        Returns:
-            Time-averaged intensity values
-        """
-        # Placeholder implementation
-        # In the real implementation, this would handle the integration
-        # over the sampling time window
-        return state_sequence.astype(float)

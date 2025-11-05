@@ -1,33 +1,20 @@
 """
-Noise models for fluorescence trace simulation.
-
-This module contains classes for adding Gaussian noise to simulated traces.
+Simple noise model for fluorescence trace simulation.
 """
 
 import numpy as np
 
 
-class GaussianNoise:
-    """Gaussian background noise"""
+def add_gaussian_noise(signal: np.ndarray, sigma: float) -> np.ndarray:
+    """
+    Add Gaussian noise to signal.
 
-    def __init__(self, sigma: float):
-        """
-        Initialize Gaussian noise model.
+    Args:
+        signal: Input signal
+        sigma: Standard deviation of Gaussian noise
 
-        Args:
-            sigma: Standard deviation of Gaussian noise
-        """
-        self.sigma = sigma
-
-    def add_noise(self, signal: np.ndarray) -> np.ndarray:
-        """
-        Add Gaussian noise to signal.
-
-        Args:
-            signal: Input signal
-
-        Returns:
-            Signal with Gaussian noise added
-        """
-        noise = np.random.normal(0, self.sigma, signal.shape)
-        return signal + noise
+    Returns:
+        Signal with Gaussian noise added
+    """
+    noise = np.random.normal(0, sigma, signal.shape)
+    return signal + noise

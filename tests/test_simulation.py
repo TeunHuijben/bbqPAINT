@@ -5,7 +5,7 @@ Tests for the simulation module.
 import numpy as np
 import pytest
 
-from mcoast.simulation import GaussianNoise, SimulationParameters, TraceGenerator
+from mcoast.simulation import SimulationParameters, TraceGenerator, add_gaussian_noise
 
 
 class TestSimulationParameters:
@@ -14,11 +14,13 @@ class TestSimulationParameters:
     def test_initialization(self):
         """Test that parameters initialize correctly"""
         params = SimulationParameters()
-        assert params.k_on is None
-        assert params.k_off is None
-        assert params.n_emitters is None
-        assert params.dt is None
-        assert params.measurement_time is None
+        assert params.k_on == 0.15
+        assert params.k_off == 0.3
+        assert params.n_emitters == 4
+        assert params.dt == 0.2
+        assert params.measurement_time == 3600
+        assert params.single_molecule_intensity == 1.0
+        assert params.sigma_noise == 0.2
 
     def test_valid_parameters(self):
         """Test validation passes with valid parameters"""
@@ -69,56 +71,40 @@ class TestSimulationParameters:
         with pytest.raises(ValueError, match="measurement_time must be positive"):
             params.validate()
 
-    def test_to_dict(self):
-        """Test conversion to dictionary"""
+    def test_simple_parameter_access(self):
+        """Test basic parameter access and modification"""
         params = SimulationParameters()
         params.k_on = 1.0
         params.k_off = 2.0
-        params_dict = params.to_dict()
-
-        assert isinstance(params_dict, dict)
-        assert params_dict["k_on"] == 1.0
-        assert params_dict["k_off"] == 2.0
-
-    def test_from_dict(self):
-        """Test creation from dictionary"""
-        params_dict = {"k_on": 1.0, "k_off": 2.0, "n_emitters": 4}
-        params = SimulationParameters.from_dict(params_dict)
+        params.n_emitters = 4
+        params.dt = 0.1
+        params.measurement_time = 100.0
+        params.single_molecule_intensity = 40.0
+        params.sigma_noise = 5.0
 
         assert params.k_on == 1.0
         assert params.k_off == 2.0
         assert params.n_emitters == 4
-
-    def test_update(self):
-        """Test parameter update"""
-        params = SimulationParameters()
-        params.update(k_on=1.0, k_off=2.0)
-
-        assert params.k_on == 1.0
-        assert params.k_off == 2.0
+        assert params.dt == 0.1
+        assert params.measurement_time == 100.0
+        assert params.single_molecule_intensity == 40.0
+        assert params.sigma_noise == 5.0
 
 
 class TestGaussianNoise:
-    """Tests for GaussianNoise class"""
-
-    def test_initialization(self):
-        """Test noise model initialization"""
-        noise = GaussianNoise(sigma=5.0)
-        assert noise.sigma == 5.0
+    """Tests for add_gaussian_noise function"""
 
     def test_add_noise_shape(self):
         """Test that noise preserves signal shape"""
-        noise = GaussianNoise(sigma=1.0)
         signal = np.ones(100)
-        noisy_signal = noise.add_noise(signal)
+        noisy_signal = add_gaussian_noise(signal, sigma=1.0)
 
         assert noisy_signal.shape == signal.shape
 
     def test_add_noise_changes_signal(self):
         """Test that noise actually changes the signal"""
-        noise = GaussianNoise(sigma=5.0)
         signal = np.ones(100)
-        noisy_signal = noise.add_noise(signal)
+        noisy_signal = add_gaussian_noise(signal, sigma=5.0)
 
         # With sigma=5, it's extremely unlikely all values remain 1.0
         assert not np.allclose(noisy_signal, signal)
@@ -127,9 +113,8 @@ class TestGaussianNoise:
         """Test that noise has correct statistical properties"""
         np.random.seed(42)
         sigma = 10.0
-        noise_model = GaussianNoise(sigma=sigma)
         signal = np.zeros(10000)  # Zero signal
-        noisy_signal = noise_model.add_noise(signal)
+        noisy_signal = add_gaussian_noise(signal, sigma=sigma)
 
         # The noise should have mean ~0 and std ~sigma
         assert np.abs(np.mean(noisy_signal)) < 0.5  # Mean close to 0
@@ -137,9 +122,8 @@ class TestGaussianNoise:
 
     def test_zero_noise(self):
         """Test that zero sigma produces no noise"""
-        noise = GaussianNoise(sigma=0.0)
         signal = np.ones(100)
-        noisy_signal = noise.add_noise(signal)
+        noisy_signal = add_gaussian_noise(signal, sigma=0.0)
 
         assert np.allclose(noisy_signal, signal)
 
@@ -157,25 +141,23 @@ class TestTraceGenerator:
         params.dt = 0.1
         params.measurement_time = 100.0
         params.single_molecule_intensity = 40.0
-        params.snr = 3.0
+        params.sigma_noise = 0.2
         return params
 
     def test_initialization(self, basic_params):
         """Test generator initialization"""
         generator = TraceGenerator(basic_params)
         assert generator.params == basic_params
-        assert generator.noise_model is not None
+        assert generator.noise_sigma is not None
 
-    def test_noise_model_from_snr(self, basic_params):
-        """Test noise model setup from SNR"""
+    def test_noise_sigma_from_snr(self, basic_params):
+        """Test noise sigma equals sigma_noise parameter"""
         generator = TraceGenerator(basic_params)
-        expected_sigma = basic_params.single_molecule_intensity / basic_params.snr
 
-        assert isinstance(generator.noise_model, GaussianNoise)
-        assert np.isclose(generator.noise_model.sigma, expected_sigma)
+        assert generator.noise_sigma == basic_params.sigma_noise
 
-    def test_noise_model_from_sigma(self):
-        """Test noise model setup from direct sigma"""
+    def test_noise_sigma_from_direct_value(self):
+        """Test noise sigma setup from direct sigma"""
         params = SimulationParameters()
         params.k_on = 1.0
         params.k_off = 2.0
@@ -183,10 +165,10 @@ class TestTraceGenerator:
         params.dt = 0.1
         params.measurement_time = 100.0
         params.single_molecule_intensity = 40.0
-        params.noise_sigma = 5.0
+        params.sigma_noise = 5.0
 
         generator = TraceGenerator(params)
-        assert generator.noise_model.sigma == 5.0
+        assert generator.noise_sigma == 5.0
 
     def test_noise_model_no_noise(self):
         """Test noise model setup with no noise parameters"""
@@ -197,9 +179,10 @@ class TestTraceGenerator:
         params.dt = 0.1
         params.measurement_time = 100.0
         params.single_molecule_intensity = 40.0
+        params.sigma_noise = 0.0
 
         generator = TraceGenerator(params)
-        assert generator.noise_model.sigma == 0.0
+        assert generator.noise_sigma == 0.0
 
     def test_generate_trace_shape(self, basic_params):
         """Test that generated trace has correct shape"""
@@ -221,7 +204,9 @@ class TestTraceGenerator:
 
         # Check start and end times
         assert time_points[0] == 0.0
-        assert np.isclose(time_points[-1], basic_params.measurement_time - basic_params.dt)
+        assert np.isclose(
+            time_points[-1], basic_params.measurement_time - basic_params.dt
+        )
 
     def test_generate_trace_intensity_range(self, basic_params):
         """Test that intensity values are in reasonable range"""
@@ -233,7 +218,9 @@ class TestTraceGenerator:
         assert np.sum(intensity < -50) < len(intensity) * 0.1
 
         # Maximum intensity should be roughly n_emitters * I_single + some noise
-        max_expected = basic_params.n_emitters * basic_params.single_molecule_intensity * 2
+        max_expected = (
+            basic_params.n_emitters * basic_params.single_molecule_intensity * 2
+        )
         assert np.max(intensity) < max_expected
 
     def test_generate_trace_mean_intensity(self, basic_params):
@@ -257,7 +244,7 @@ class TestTraceGenerator:
     def test_single_emitter_trace(self, basic_params):
         """Test single emitter trace generation"""
         basic_params.n_emitters = 1
-        basic_params.snr = None  # No noise for easier testing
+        basic_params.sigma_noise = 0.0  # No noise for easier testing
         basic_params.measurement_time = 100.0
 
         generator = TraceGenerator(basic_params)
@@ -276,7 +263,10 @@ class TestTraceGenerator:
         """Test the blinking state generation"""
         generator = TraceGenerator(basic_params)
         time_points, states = generator._simple_two_state_blinking(
-            basic_params.k_on, basic_params.k_off, basic_params.dt, basic_params.measurement_time
+            basic_params.k_on,
+            basic_params.k_off,
+            basic_params.dt,
+            basic_params.measurement_time,
         )
 
         expected_n_frames = int(basic_params.measurement_time / basic_params.dt)
@@ -293,7 +283,10 @@ class TestTraceGenerator:
 
         generator = TraceGenerator(basic_params)
         _, states = generator._simple_two_state_blinking(
-            basic_params.k_on, basic_params.k_off, basic_params.dt, basic_params.measurement_time
+            basic_params.k_on,
+            basic_params.k_off,
+            basic_params.dt,
+            basic_params.measurement_time,
         )
 
         # Theoretical on probability
@@ -332,7 +325,7 @@ class TestTraceGenerator:
         np.random.seed(42)
         basic_params.n_emitters = 1
         basic_params.measurement_time = 1000.0
-        basic_params.snr = None
+        basic_params.sigma_noise = 0.0
         generator1 = TraceGenerator(basic_params)
         _, intensity1 = generator1.generate_trace()
 
