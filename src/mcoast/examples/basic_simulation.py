@@ -5,84 +5,70 @@ This script demonstrates how to generate synthetic fluorescence traces
 using the mCOAST simulation module.
 """
 
-import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mcoast.simulation import SimulationParameters, TraceGenerator  # noqa: E402
-from mcoast.utils import Plotter  # noqa: E402
+from mcoast.simulation import SimulationParameters, TraceGenerator
+from mcoast.utils import Plotter
 
 
 def main():
     """Main function demonstrating basic simulation."""
 
     print("=== mCOAST Basic Simulation Example ===")
+    print(
+        "This example shows how to simulate fluorescence traces from blinking molecules."
+    )
+    print()
 
-    # Create simulation parameters
+    # Set up simulation parameters
+    print("1. Setting up simulation parameters...")
     sim_params = SimulationParameters()
-    sim_params.k_on = 1.0  # On rate (Hz)
-    sim_params.k_off = 2.0  # Off rate (Hz)
-    sim_params.n_emitters = 4  # Number of emitters
-    sim_params.dt = 0.1  # Sampling time (s)
-    sim_params.measurement_time = 1000  # Total measurement time (s)
-    sim_params.single_molecule_intensity = 40.0  # Single molecule intensity
-    sim_params.sigma_noise = 2.0  # Noise standard deviation
+    sim_params.k_on = 1.0  # How fast molecules turn ON (per second)
+    sim_params.k_off = 2.0  # How fast molecules turn OFF (per second)
+    sim_params.n_emitters = 4  # Number of molecules
+    sim_params.dt = 0.1  # Time between measurements (seconds)
+    sim_params.measurement_time = 1000  # Total measurement time (seconds)
+    sim_params.single_molecule_intensity = 40.0  # Brightness of one molecule
+    sim_params.sigma_noise = 2.0  # Amount of background noise
 
-    # Validate parameters
-    sim_params.validate()
-    print("✓ Simulation parameters validated")
+    print(f"   • Number of molecules: {sim_params.n_emitters}")
+    print(f"   • ON rate: {sim_params.k_on} per second")
+    print(f"   • OFF rate: {sim_params.k_off} per second")
+    print(f"   • Measurement time: {sim_params.measurement_time} seconds")
+    print(f"   • Single molecule brightness: {sim_params.single_molecule_intensity}")
+    print()
 
-    # Create trace generator
+    # Generate the fluorescence trace
+    print("2. Generating fluorescence trace...")
     generator = TraceGenerator(sim_params)
-    print("✓ Trace generator created")
-
-    # Generate trace
-    print("Generating fluorescence trace...")
     time_points, intensity = generator.generate_trace()
-    print(f"✓ Generated trace with {len(intensity)} points")
-    print(f"  Duration: {time_points[-1]:.1f} s")
-    print(f"  Mean intensity: {np.mean(intensity):.2f}")
-    print(f"  Std intensity: {np.std(intensity):.2f}")
 
-    # Create plotter and visualize
-    plotter = Plotter()
+    print(f"   ✓ Generated {len(intensity)} data points")
+    print(f"   ✓ Average intensity: {np.mean(intensity):.1f}")
+    print(f"   ✓ Intensity variation: {np.std(intensity):.1f}")
+    print()
 
-    # Plot the trace
-    fig = plotter.plot_trace(
-        intensity, sim_params.dt, title="Generated Fluorescence Trace"
-    )
-
-    # Save the plot
-    output_dir = "output"
-    os.makedirs(output_dir, exist_ok=True)
-    fig.savefig(
-        os.path.join(output_dir, "simulated_trace.png"), dpi=300, bbox_inches="tight"
-    )
-    print(f"✓ Plot saved to {output_dir}/simulated_trace.png")
-
-    # Print parameter summary
-    print("\n=== Simulation Parameters ===")
-    print(f"On rate (k_on): {sim_params.k_on} Hz")
-    print(f"Off rate (k_off): {sim_params.k_off} Hz")
-    print(f"Number of emitters: {sim_params.n_emitters}")
-    print(f"Sampling time: {sim_params.dt} s")
-    print(f"Measurement time: {sim_params.measurement_time} s")
-    print(f"Single molecule intensity: {sim_params.single_molecule_intensity}")
-    print(f"Noise standard deviation: {sim_params.sigma_noise}")
-
-    # Calculate theoretical values
+    # Show what we expect vs what we got
+    print("3. Comparing results with theory...")
     k_sum_theory = sim_params.k_on + sim_params.k_off
-    p_up_theory = sim_params.k_on / k_sum_theory
-    i_mean_theory = (
+    p_up_theory = sim_params.k_on / k_sum_theory  # Fraction of time molecules are ON
+    expected_intensity = (
         sim_params.n_emitters * sim_params.single_molecule_intensity * p_up_theory
     )
 
-    print("\n=== Theoretical Values ===")
-    print(f"Total rate (k_sum): {k_sum_theory} Hz")
-    print(f"On probability: {p_up_theory:.3f}")
-    print(f"Theoretical mean intensity: {i_mean_theory:.2f}")
-    print(f"Actual mean intensity: {np.mean(intensity):.2f}")
+    print(f"   • Expected average intensity: {expected_intensity:.1f}")
+    print(f"   • Actual average intensity: {np.mean(intensity):.1f}")
+    print(f"   • Difference: {abs(np.mean(intensity) - expected_intensity):.1f}")
+    print()
+
+    # Create and show the plot
+    print("4. Creating plot...")
+    plotter = Plotter()
+    plotter.plot_trace(intensity, sim_params.dt, title="Simulated Fluorescence Trace")
+
+    print("   ✓ Plot created - showing fluorescence over time")
+    print("   ✓ You should see the molecules blinking on and off!")
 
     plt.show()
 
