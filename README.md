@@ -10,8 +10,8 @@ Molecular counting from a single intensity trace
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/mcoast-python.git
-cd mcoast-python
+git clone https://github.com/TeunHuijben/mcoast.git
+cd mcoast
 pip install -e .
 ```
 
