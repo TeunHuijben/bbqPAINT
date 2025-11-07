@@ -24,13 +24,13 @@ def main():
     # Set up simulation parameters
     print("1. Setting up simulation parameters...")
     sim_params = SimulationParameters()
-    sim_params.k_on = 1.0  # How fast molecules turn ON (per second)
-    sim_params.k_off = 2.0  # How fast molecules turn OFF (per second)
+    sim_params.k_on = 0.15  # How fast molecules turn ON (per second)
+    sim_params.k_off = 0.3  # How fast molecules turn OFF (per second)
     sim_params.n_emitters = 4  # Number of molecules
-    sim_params.dt = 0.1  # Time between measurements (seconds)
-    sim_params.measurement_time = 1000  # Total measurement time (seconds)
-    sim_params.single_molecule_intensity = 40.0  # Brightness of one molecule
-    sim_params.sigma_noise = 2.0  # Amount of background noise
+    sim_params.dt = 0.2  # Time between measurements (seconds)
+    sim_params.measurement_time = 5000  # Total measurement time (seconds)
+    sim_params.single_molecule_intensity = 1.0  # Brightness of one molecule
+    sim_params.sigma_noise = 0.2  # Amount of background noise
 
     print(f"   • Number of molecules: {sim_params.n_emitters}")
     print(f"   • ON rate: {sim_params.k_on} per second")

@@ -87,10 +87,6 @@ mcoast/
 │   ├── bispectrum.py
 │   ├── parameter_estimation.py
 │   └── fitting.py
-├── models/              # Theoretical models
-│   ├── power_spectrum.py
-│   ├── bispectrum_theory.py
-│   └── cumulants.py
 ├── utils/               # Utility functions
 │   ├── preprocessing.py
 │   ├── statistics.py

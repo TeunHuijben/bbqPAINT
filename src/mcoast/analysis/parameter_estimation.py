@@ -104,7 +104,12 @@ class ParameterEstimator:
 
         # Fit using maximum likelihood estimation
         fitted_params, cov_matrix = self.fitting_engine.fit_power_spectrum_mle(
-            power_spec, freq_vec, initial_guess, bounds, self.params.max_iterations
+            power_spec,
+            freq_vec,
+            initial_guess,
+            bounds,
+            self.params.max_iterations,
+            self.params.dt,
         )
 
         # Extract parameters and uncertainties
@@ -169,6 +174,7 @@ class ParameterEstimator:
             initial_guess,
             self.params.max_iterations,
             self.params.fit_k_sum_free,
+            self.params.dt,
         )
 
         # Extract parameters and uncertainties

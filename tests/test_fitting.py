@@ -197,8 +197,11 @@ class TestFittingEngine:
         k_sum = 0.8
         s2 = 100.0
         pk_bg = 5.0
+        dt = 0.1
 
-        ps_theory = fitting_engine._calculate_theoretical_ps(freq_vec, k_sum, s2, pk_bg)
+        ps_theory = fitting_engine._calculate_theoretical_ps(
+            freq_vec, k_sum, s2, pk_bg, dt
+        )
 
         # Check output properties
         assert len(ps_theory) == len(freq_vec)
@@ -213,15 +216,15 @@ class TestFittingEngine:
         k_sum = 0.8
         c3 = 50.0
         c3_offset = 2.0
+        dt = 0.1
 
         bs_theory = fitting_engine._calculate_theoretical_bs(
-            k1_data, k2_data, k_sum, c3, c3_offset
+            k1_data, k2_data, k_sum, c3, c3_offset, dt
         )
 
-        # The current implementation returns a scalar, not array
-        # This tests the current behavior
-        assert np.isscalar(bs_theory) or len(bs_theory) == 1
-        assert np.isfinite(bs_theory)
+        # After fix, should return array matching input length
+        assert len(bs_theory) == n_points
+        assert np.all(np.isfinite(bs_theory))
 
     def test_fitting_with_invalid_data(self, fitting_engine):
         """Test fitting behavior with invalid/edge case data"""
