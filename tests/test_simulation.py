@@ -298,11 +298,11 @@ class TestTraceGenerator:
         # Allow 10% tolerance
         assert np.abs(p_up_actual - p_up_expected) < 0.1 * p_up_expected
 
-    def test_generate_ensemble_trace(self, basic_params):
-        """Test ensemble trace generation (alias)"""
+    def test_generate_trace_multiple_times(self, basic_params):
+        """Test trace generation consistency"""
         generator = TraceGenerator(basic_params)
         time1, intensity1 = generator.generate_trace()
-        time2, intensity2 = generator.generate_ensemble_trace()
+        time2, intensity2 = generator.generate_trace()
 
         # Should have same shape (but different values due to randomness)
         assert len(time1) == len(time2)

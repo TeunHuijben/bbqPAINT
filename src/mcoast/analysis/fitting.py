@@ -36,14 +36,8 @@ from scipy.optimize import curve_fit, minimize
 class FittingEngine:
     """Handles different fitting algorithms"""
 
-    def __init__(self, method: str = "mle"):
-        """
-        Initialize fitting engine.
-
-        Args:
-            method: Default fitting method ("mle", "wls", "ls")
-        """
-        self.method = method
+    def __init__(self):
+        """Initialize fitting engine."""
 
     def fit_power_spectrum_mle(
         self,
@@ -99,7 +93,10 @@ class FittingEngine:
             cov_matrix = self._calculate_covariance_matrix(
                 fitted_params, power_spec, freq_vec, negative_log_likelihood
             )
-        except Exception:
+        except (np.linalg.LinAlgError, ValueError) as e:
+            print(
+                f"Warning: Could not calculate covariance matrix for power spectrum fit: {e}"
+            )
             cov_matrix = None
 
         return fitted_params, cov_matrix
@@ -160,8 +157,8 @@ class FittingEngine:
                 maxfev=max_iterations,
                 absolute_sigma=True,
             )
-        except Exception as e:
-            print(f"Fitting failed: {e}")
+        except (RuntimeError, ValueError, np.linalg.LinAlgError) as e:
+            print(f"Warning: Bispectrum fitting failed, using initial guess: {e}")
             fitted_params = np.array(initial_guess)
             cov_matrix = None
 

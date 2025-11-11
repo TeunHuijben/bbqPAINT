@@ -17,7 +17,7 @@ class TestFittingEngine:
     @pytest.fixture
     def fitting_engine(self):
         """Create a FittingEngine instance for testing"""
-        return FittingEngine(method="mle")
+        return FittingEngine()
 
     @pytest.fixture
     def sample_power_spectrum_data(self):
@@ -90,10 +90,7 @@ class TestFittingEngine:
     def test_fitting_engine_initialization(self):
         """Test FittingEngine initialization"""
         engine = FittingEngine()
-        assert engine.method == "mle"
-
-        engine_wls = FittingEngine(method="wls")
-        assert engine_wls.method == "wls"
+        assert engine is not None
 
     def test_power_spectrum_mle_fitting(
         self, fitting_engine, sample_power_spectrum_data
@@ -288,12 +285,9 @@ class TestFittingEngine:
         assert np.all(np.isfinite(fitted_params_many))
 
     def test_different_fitting_methods(self):
-        """Test initialization with different fitting methods"""
-        methods = ["mle", "wls", "ls"]
-
-        for method in methods:
-            engine = FittingEngine(method=method)
-            assert engine.method == method
+        """Test that FittingEngine can be instantiated"""
+        engine = FittingEngine()
+        assert engine is not None
 
     def test_empty_data_handling(self, fitting_engine):
         """Test handling of empty or minimal data"""

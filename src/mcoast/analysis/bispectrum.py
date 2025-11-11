@@ -81,20 +81,6 @@ class BispectrumAnalyzer:
 
         return bispectrum, k1_mat, k2_mat
 
-    def calculate_bispectrum_triangle(
-        self, chopped_traces: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Calculate bispectrum in triangular region (alias for calculate_bispectrum).
-
-        Args:
-            chopped_traces: Matrix of chopped traces [chop_length x n_chops]
-
-        Returns:
-            Tuple of (bispectrum, k1_matrix, k2_matrix)
-        """
-        return self.calculate_bispectrum(chopped_traces)
-
     def apply_mask(
         self, bispectrum: np.ndarray, k1_mat: np.ndarray, k2_mat: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:

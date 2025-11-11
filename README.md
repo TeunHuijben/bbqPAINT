@@ -62,7 +62,7 @@ The package includes several example scripts demonstrating different use cases:
 
 - `basic_simulation.py`: Generate synthetic fluorescence traces
 - `parameter_estimation.py`: Analyze traces and estimate parameters
-- `experimental_data.py`: Analyze experimental data with preprocessing
+- `experimental_data.py`: Analyze experimental data
 
 Run examples:
 
@@ -88,7 +88,6 @@ mcoast/
 │   ├── parameter_estimation.py
 │   └── fitting.py
 ├── utils/               # Utility functions
-│   ├── preprocessing.py
 │   ├── statistics.py
 │   └── visualization.py
 └── examples/            # Example scripts
