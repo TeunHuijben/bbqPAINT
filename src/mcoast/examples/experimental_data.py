@@ -11,7 +11,7 @@ import os
 import numpy as np
 
 from mcoast.analysis import AnalysisParameters, ParameterEstimator
-from mcoast.utils import Plotter, TracePreprocessor
+from mcoast.utils import Plotter
 
 
 def load_experimental_data(filename="experimental_data_example.csv"):
@@ -51,16 +51,6 @@ def analyze_experimental_data():
     dt = trace_data["time"][1] - trace_data["time"][0]
     print(f"✓ Sampling time: {dt:.3f} seconds")
 
-    # Step 2: Preprocess the data
-    print("\nPreprocessing experimental data...")
-    preprocessor = TracePreprocessor()
-
-    # Remove outliers and clean up the data
-    cleaned_intensity, _ = preprocessor.remove_outliers(trace_data["intensity"])
-    detrended_intensity = preprocessor.detrend(cleaned_intensity)
-
-    print("✓ Data cleaned and detrended")
-
     # Step 3: Set up analysis parameters
     print("\nSetting up analysis parameters...")
     analysis_params = AnalysisParameters()
@@ -72,7 +62,7 @@ def analyze_experimental_data():
 
     # Step 4: Run complete analysis
     print("\nPerforming complete analysis...")
-    estimator = ParameterEstimator(detrended_intensity, analysis_params)
+    estimator = ParameterEstimator(trace_data["intensity"], analysis_params)
     results = estimator.estimate_parameters()
 
     print("✓ Analysis completed!")
@@ -95,12 +85,12 @@ def analyze_experimental_data():
     plotter = Plotter()
 
     print("✓ Trace plot")
-    plotter.plot_trace(detrended_intensity, dt)
+    plotter.plot_trace(trace_data["intensity"], dt)
 
     if results.power_spectrum is not None:
         print("✓ Power spectrum plot")
         freq_vec = np.arange(1, len(results.power_spectrum) + 1) / (
-            len(detrended_intensity) * analysis_params.dt
+            len(trace_data["intensity"]) * analysis_params.dt
         )
         plotter.plot_power_spectrum(freq_vec, results.power_spectrum)
 

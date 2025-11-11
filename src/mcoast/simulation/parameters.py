@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 @dataclass
 class SimulationParameters:
-    """Simple simulation parameters matching MATLAB demo"""
+    """Simple simulation parameters"""
 
     # Core blinking parameters
     k_on: float = 0.15  # On rate [1/s]

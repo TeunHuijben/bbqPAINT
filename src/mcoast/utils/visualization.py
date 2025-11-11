@@ -9,7 +9,6 @@ from typing import Any, Dict, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import LogNorm
 
 
 class Plotter:
@@ -106,6 +105,7 @@ class Plotter:
             ax.legend()
 
         if log_scale:
+            ax.set_xscale("log")
             ax.set_yscale("log")
 
         ax.set_xlabel(xlabel)
@@ -150,7 +150,11 @@ class Plotter:
         # Plot bispectrum
         if log_scale:
             im = ax.imshow(
-                np.abs(bispectrum_plot), cmap="viridis", norm=LogNorm(), origin="lower"
+                np.log10(np.abs(bispectrum_plot)),
+                cmap="viridis",
+                origin="lower",
+                vmin=1e-8,
+                vmax=0,
             )
         else:
             im = ax.imshow(bispectrum_plot, cmap="viridis", origin="lower")

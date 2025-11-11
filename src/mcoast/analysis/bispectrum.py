@@ -2,12 +2,14 @@
 Bispectrum analysis classes for mCOAST.
 
 This module contains classes for calculating and analyzing bispectra
-from fluorescence traces.
+from fluorescence traces, with integrated fitting using the full
+frequency-dependent theoretical model.
 """
 
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
+from scipy.optimize import curve_fit
 
 
 class BispectrumAnalyzer:
@@ -81,19 +83,73 @@ class BispectrumAnalyzer:
 
         return bispectrum, k1_mat, k2_mat
 
-    def calculate_bispectrum_triangle(
-        self, chopped_traces: np.ndarray
+    def calculate_full_bispectrum(
+        self, chopped_traces: np.ndarray, freq_max: float = None
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
-        Calculate bispectrum in triangular region (alias for calculate_bispectrum).
+        Calculate FULL bispectrum including negative frequencies (for visualization).
+
+        Creating a square matrix that includes both positive and negative frequencies up to freq_max.
 
         Args:
             chopped_traces: Matrix of chopped traces [chop_length x n_chops]
+            freq_max: Maximum frequency to include (in rad/s). If None, uses full range.
 
         Returns:
-            Tuple of (bispectrum, k1_matrix, k2_matrix)
+            Tuple of (bispectrum, freq_1_matrix, freq_2_matrix) in Hz
         """
-        return self.calculate_bispectrum(chopped_traces)
+        chop_length, n_chops = chopped_traces.shape
+
+        # Ensure even number of frames
+        if chop_length % 2 == 1:
+            chopped_traces = chopped_traces[:-1, :]
+            chop_length = chopped_traces.shape[0]
+
+        # Calculate FFT for each chop (fftshift for zero-centered frequencies)
+        fft_chops = self.dt * np.fft.fftshift(
+            np.fft.fft(chopped_traces, axis=0), axes=0
+        )
+
+        # Create frequency vector (zero-centered)
+        freq_vec_hz = np.fft.fftshift(np.fft.fftfreq(chop_length, self.dt))
+        freq_vec_rad = freq_vec_hz * 2 * np.pi  # Convert to rad/s
+
+        # Determine frequency range to calculate
+        if freq_max is None:
+            freq_max = np.max(np.abs(freq_vec_rad))
+
+        # Find indices within freq_max range
+        idx_want = np.where(np.abs(freq_vec_rad) <= freq_max)[0]
+        n_b = len(idx_want)
+
+        # Create index matrices for k1, k2, k3
+        idx_0 = np.where(freq_vec_rad == 0)[0][0]  # Zero frequency index
+        idx1_mat = np.tile(idx_want, (n_b, 1))
+        idx2_mat = np.tile(idx_want[:, np.newaxis], (1, n_b))
+        idx3_mat = idx1_mat + idx2_mat - idx_0
+
+        # Initialize bispectrum
+        bispectrum = np.zeros((n_b, n_b))
+
+        # Calculate bispectrum
+        for chop in range(n_chops):
+            # Extract Fourier components for this chop
+            fx = fft_chops[idx1_mat.flatten(), chop]
+            fy = fft_chops[idx2_mat.flatten(), chop]
+            fz = fft_chops[idx3_mat.flatten(), chop]
+
+            # Calculate bispectrum component
+            bs_component = np.real(fx * fy * np.conj(fz))
+            bispectrum += bs_component.reshape(n_b, n_b)
+
+        # Average over chops and normalize
+        bispectrum = bispectrum / n_chops / (chop_length * self.dt)
+
+        # Create frequency matrices for output
+        freq_1_mat = np.tile(freq_vec_hz[idx_want], (n_b, 1))
+        freq_2_mat = np.tile(freq_vec_hz[idx_want][:, np.newaxis], (1, n_b))
+
+        return bispectrum, freq_1_mat, freq_2_mat
 
     def apply_mask(
         self, bispectrum: np.ndarray, k1_mat: np.ndarray, k2_mat: np.ndarray
@@ -260,3 +316,142 @@ class BispectrumAnalyzer:
         variance = pk1 * pk2 * pk3 / n_chops
 
         return variance
+
+    def fit_bispectrum_wls(
+        self,
+        bs_data: np.ndarray,
+        k1_data: np.ndarray,
+        k2_data: np.ndarray,
+        weights: np.ndarray,
+        chop_length: int,
+        initial_guess: List[float],
+        max_iterations: int = 1000,
+        fit_k_sum_free: bool = False,
+    ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+        """
+        Weighted least squares fitting for bispectrum using the full theoretical model.
+
+        Args:
+            bs_data: Bispectrum data (flattened)
+            k1_data: k1 frequency data (flattened)
+            k2_data: k2 frequency data (flattened)
+            weights: Weights for fitting (inverse variance)
+            chop_length: Length of each chop
+            initial_guess: Initial parameter guess [c3, c3_offset] or [c3, c3_offset, k_sum]
+            max_iterations: Maximum number of iterations
+            fit_k_sum_free: Whether to fit k_sum as free parameter
+
+        Returns:
+            Tuple of (fitted_parameters, covariance_matrix)
+                fitted_parameters: [c3, c3_offset] or [c3, c3_offset, k_sum]
+                covariance_matrix: 2x2 or 3x3 covariance matrix (or None if calculation fails)
+        """
+
+        def bispectrum_model(k12_data, *params):
+            """
+            Bispectrum model function using the full frequency-dependent theoretical model.
+
+            This uses the complete theoretical bispectrum calculation, NOT a constant approximation.
+            """
+            if fit_k_sum_free:
+                c3, c3_offset, k_sum = params
+            else:
+                c3, c3_offset = params
+                k_sum = initial_guess[2] if len(initial_guess) > 2 else 0.3
+
+            # Extract k1 and k2
+            k1_mat = k12_data[:, 0]
+            k2_mat = k12_data[:, 1]
+
+            # Calculate theoretical bispectrum using the FULL model
+            c = np.exp(-k_sum * self.dt)
+            k3_mat = k1_mat + k2_mat
+
+            # Full theoretical bispectrum formula (frequency-dependent)
+            temp1 = (
+                (np.cos(2 * np.pi * k1_mat / chop_length) - c)
+                / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k1_mat / chop_length))
+                + (np.cos(2 * np.pi * k2_mat / chop_length) - c)
+                / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k2_mat / chop_length))
+                + (np.cos(2 * np.pi * k3_mat / chop_length) - c)
+                / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k3_mat / chop_length))
+            )
+
+            temp2 = (
+                np.cos(2 * np.pi * (k1_mat - k2_mat) / chop_length)
+                - c
+                * (
+                    np.cos(2 * np.pi * k1_mat / chop_length)
+                    + np.cos(2 * np.pi * k2_mat / chop_length)
+                )
+                + c**2
+            ) / (
+                (1 + c**2 - 2 * c * np.cos(2 * np.pi * k1_mat / chop_length))
+                * (1 + c**2 - 2 * c * np.cos(2 * np.pi * k2_mat / chop_length))
+            )
+
+            temp3 = (
+                np.cos(2 * np.pi * (k1_mat + k3_mat) / chop_length)
+                - c
+                * (
+                    np.cos(2 * np.pi * k1_mat / chop_length)
+                    + np.cos(2 * np.pi * k3_mat / chop_length)
+                )
+                + c**2
+            ) / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k1_mat / chop_length)) + (
+                np.cos(2 * np.pi * (k2_mat + k3_mat) / chop_length)
+                - c
+                * (
+                    np.cos(2 * np.pi * k2_mat / chop_length)
+                    + np.cos(2 * np.pi * k3_mat / chop_length)
+                )
+                + c**2
+            ) / (
+                1 + c**2 - 2 * c * np.cos(2 * np.pi * k2_mat / chop_length)
+            )
+
+            bs_theory = (
+                self.dt**2
+                * c3
+                * (
+                    1
+                    + 2 * c * temp1
+                    + 2
+                    * c**2
+                    * (
+                        temp2
+                        + temp3
+                        / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k3_mat / chop_length))
+                    )
+                )
+                + c3_offset**2
+            )
+
+            return bs_theory
+
+        # Prepare data
+        k12_data = np.column_stack([k1_data, k2_data])
+
+        # Prepare initial guess based on fit_k_sum_free
+        if fit_k_sum_free:
+            p0 = initial_guess[:3]  # c3, c3_offset, k_sum
+        else:
+            p0 = initial_guess[:2]  # c3, c3_offset only
+
+        # Perform weighted least squares fitting
+        try:
+            fitted_params, cov_matrix = curve_fit(
+                bispectrum_model,
+                k12_data,
+                bs_data,
+                p0=p0,
+                sigma=weights,
+                maxfev=max_iterations,
+                absolute_sigma=True,
+            )
+        except (RuntimeError, ValueError, np.linalg.LinAlgError) as e:
+            print(f"Warning: Bispectrum fitting failed, using initial guess: {e}")
+            fitted_params = np.array(p0)
+            cov_matrix = None
+
+        return fitted_params, cov_matrix

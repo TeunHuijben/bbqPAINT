@@ -145,7 +145,3 @@ class TraceGenerator:
             states[i] = current_state
 
         return time_points, states
-
-    def generate_ensemble_trace(self) -> Tuple[np.ndarray, np.ndarray]:
-        """Generate trace from multiple emitters (alias for generate_trace)"""
-        return self.generate_trace()

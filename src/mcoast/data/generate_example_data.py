@@ -17,13 +17,13 @@ def main():
 
     # Set up realistic experimental parameters
     sim_params = SimulationParameters()
-    sim_params.k_on = 0.8
-    sim_params.k_off = 1.5
-    sim_params.n_emitters = 3
-    sim_params.dt = 0.1  # 100 ms sampling
-    sim_params.measurement_time = 3000  # 50 minutes
-    sim_params.single_molecule_intensity = 30.0
-    sim_params.sigma_noise = 3.0  # Realistic noise level
+    sim_params.k_on = 0.15
+    sim_params.k_off = 0.3
+    sim_params.n_emitters = 4
+    sim_params.dt = 0.2  # 100 ms sampling
+    sim_params.measurement_time = 5000  # 50 minutes
+    sim_params.single_molecule_intensity = 10.0
+    sim_params.sigma_noise = 1.0  # Realistic noise level
 
     # Generate the trace
     np.random.seed(42)  # For reproducible example data
