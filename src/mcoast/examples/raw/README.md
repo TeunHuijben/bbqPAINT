@@ -34,7 +34,7 @@ Test the jupytext conversion locally:
 pip install jupytext
 
 # Convert to notebook
-jupytext --to notebook 1_basic_simulation.py -o ../notebooks/1_basic_simulation.ipynb
+jupytext --to notebook 1_basic_simulation.py -o 1_basic_simulation.ipynb
 
 # Run as Python script
 python 1_basic_simulation.py
@@ -42,4 +42,4 @@ python 1_basic_simulation.py
 
 ## For Users
 
-Users can use the **auto-generated notebooks** in `../notebooks/` instead of these raw files.
+Users can use the **auto-generated notebooks** in `/examples/` instead of these raw files.
