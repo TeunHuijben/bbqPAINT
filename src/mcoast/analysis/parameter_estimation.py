@@ -8,13 +8,12 @@ the complete analysis pipeline.
 import numpy as np
 
 from mcoast.analysis.bispectrum import BispectrumAnalyzer
-from mcoast.analysis.fitting import FittingEngine
 from mcoast.analysis.parameters import AnalysisParameters, AnalysisResults
-from mcoast.analysis.spectral_analysis import SpectralAnalyzer
+from mcoast.analysis.power_spectrum import PowerSpectrumAnalyzer
 
 
 class ParameterEstimator:
-    """Main parameter estimation class"""
+    """Main parameter estimation class - orchestrates the analysis pipeline"""
 
     def __init__(self, trace: np.ndarray, params: AnalysisParameters):
         """
@@ -28,10 +27,9 @@ class ParameterEstimator:
         self.params = params
         self.params.validate()
 
-        # Initialize analyzers
-        self.spectral_analyzer = SpectralAnalyzer(params.dt, params.n_chops)
+        # Initialize analyzers (each handles its own fitting)
+        self.power_spectrum_analyzer = PowerSpectrumAnalyzer(params.dt, params.n_chops)
         self.bispectrum_analyzer = BispectrumAnalyzer(params.dt)
-        self.fitting_engine = FittingEngine()
 
         # Initialize results container
         self.results = AnalysisResults()
@@ -49,7 +47,7 @@ class ParameterEstimator:
             AnalysisResults object containing all fitted parameters
         """
         # Calculate power spectrum
-        freq_vec, power_spec = self.spectral_analyzer.calculate_power_spectrum(
+        freq_vec, power_spec = self.power_spectrum_analyzer.calculate_power_spectrum(
             self.trace
         )
         self.results.power_spectrum = power_spec
@@ -102,14 +100,13 @@ class ParameterEstimator:
             self.params.bounds.pk_bg,
         ]
 
-        # Fit using maximum likelihood estimation
-        fitted_params, cov_matrix = self.fitting_engine.fit_power_spectrum_mle(
+        # Fit using maximum likelihood estimation (integrated in analyzer)
+        fitted_params, cov_matrix = self.power_spectrum_analyzer.fit_power_spectrum_mle(
             power_spec,
             freq_vec,
             initial_guess,
             bounds,
             self.params.max_iterations,
-            self.params.dt,
         )
 
         # Extract parameters and uncertainties
@@ -132,7 +129,7 @@ class ParameterEstimator:
             Dictionary of fitted parameters
         """
         # Chop trace for bispectrum calculation
-        chopped_traces = self.spectral_analyzer.chop_trace(self.trace)
+        chopped_traces = self.power_spectrum_analyzer.chop_trace(self.trace)
 
         # Calculate bispectrum
         bispectrum, k1_mat, k2_mat = self.bispectrum_analyzer.calculate_bispectrum(
@@ -157,24 +154,29 @@ class ParameterEstimator:
         )
 
         # Prepare initial guess
+        # CRITICAL: Use central moment (third cumulant), not raw moment
+        # MATLAB moment(x,3) = E[(X-mean)^3], not E[X^3]
+        c3_initial = self.params.initial_guess.c3 or np.mean(
+            (self.trace - np.mean(self.trace)) ** 3
+        )
         initial_guess = [
-            self.params.initial_guess.c3 or np.mean(self.trace**3),
+            c3_initial,
             self.params.initial_guess.c3_offset,
         ]
 
         if self.params.fit_k_sum_free:
             initial_guess.append(self.results.k_sum_fit)
 
-        # Fit using weighted least squares
-        fitted_params, cov_matrix = self.fitting_engine.fit_bispectrum_wls(
+        # Fit using weighted least squares (integrated in analyzer with PROPER theoretical model)
+        fitted_params, cov_matrix = self.bispectrum_analyzer.fit_bispectrum_wls(
             bs_masked,
             k1_masked,
             k2_masked,
             weights,
+            chopped_traces.shape[0],  # chop_length
             initial_guess,
             self.params.max_iterations,
             self.params.fit_k_sum_free,
-            self.params.dt,
         )
 
         # Extract parameters and uncertainties

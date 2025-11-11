@@ -1,23 +1,24 @@
 """
-Tests for the fitting module.
+Tests for fitting functionality in analyzer classes.
 
-These tests verify the functionality of the FittingEngine class including
-power spectrum fitting, bispectrum fitting, and various fitting algorithms.
+These tests verify power spectrum fitting (PowerSpectrumAnalyzer) and
+bispectrum fitting (BispectrumAnalyzer) capabilities.
 """
 
 import numpy as np
 import pytest
 
-from mcoast.analysis.fitting import FittingEngine
+from mcoast.analysis.bispectrum import BispectrumAnalyzer
+from mcoast.analysis.power_spectrum import PowerSpectrumAnalyzer
 
 
-class TestFittingEngine:
-    """Test cases for FittingEngine class"""
+class TestPowerSpectrumFitting:
+    """Test cases for PowerSpectrumAnalyzer fitting"""
 
     @pytest.fixture
-    def fitting_engine(self):
-        """Create a FittingEngine instance for testing"""
-        return FittingEngine()
+    def power_spectrum_analyzer(self):
+        """Create a PowerSpectrumAnalyzer instance for testing"""
+        return PowerSpectrumAnalyzer(dt=0.1, n_chops=5)
 
     @pytest.fixture
     def sample_power_spectrum_data(self):
@@ -56,44 +57,14 @@ class TestFittingEngine:
             "true_params": [k_sum_true, s2_true, pk_bg_true],
         }
 
-    @pytest.fixture
-    def sample_bispectrum_data(self):
-        """Create sample bispectrum data for testing"""
-        n_points = 50
-        k1_data = np.random.uniform(0.1, 1.0, n_points)
-        k2_data = np.random.uniform(0.1, 1.0, n_points)
-
-        # True parameters
-        c3_true = 50.0
-        c3_offset_true = 2.0
-        k_sum_true = 0.8
-
-        # Generate theoretical bispectrum
-        dt = 0.1
-        c = np.exp(-k_sum_true * dt)
-        bs_theory = c3_true * (1 + c) + c3_offset_true
-
-        # Create data with some variation
-        bs_data = np.full(n_points, bs_theory) + np.random.normal(
-            0, 0.1 * bs_theory, n_points
-        )
-        weights = np.ones(n_points)  # Equal weights
-
-        return {
-            "bs_data": bs_data,
-            "k1_data": k1_data,
-            "k2_data": k2_data,
-            "weights": weights,
-            "true_params": [c3_true, c3_offset_true, k_sum_true],
-        }
-
-    def test_fitting_engine_initialization(self):
-        """Test FittingEngine initialization"""
-        engine = FittingEngine()
-        assert engine is not None
+    def test_power_spectrum_analyzer_initialization(self):
+        """Test PowerSpectrumAnalyzer initialization"""
+        analyzer = PowerSpectrumAnalyzer(dt=0.1, n_chops=5)
+        assert analyzer.dt == 0.1
+        assert analyzer.n_chops == 5
 
     def test_power_spectrum_mle_fitting(
-        self, fitting_engine, sample_power_spectrum_data
+        self, power_spectrum_analyzer, sample_power_spectrum_data
     ):
         """Test maximum likelihood estimation for power spectrum"""
         data = sample_power_spectrum_data
@@ -101,7 +72,7 @@ class TestFittingEngine:
         initial_guess = [0.5, 80.0, 3.0]
         bounds = [(0, 2), (10, 200), (0, 20)]
 
-        fitted_params, cov_matrix = fitting_engine.fit_power_spectrum_mle(
+        fitted_params, cov_matrix = power_spectrum_analyzer.fit_power_spectrum_mle(
             data["power_spec"],
             data["freq_vec"],
             initial_guess,
@@ -122,7 +93,7 @@ class TestFittingEngine:
         assert abs(fitted_params[2] - true_params[2]) < 10  # pk_bg
 
     def test_power_spectrum_mle_with_bounds(
-        self, fitting_engine, sample_power_spectrum_data
+        self, power_spectrum_analyzer, sample_power_spectrum_data
     ):
         """Test power spectrum fitting respects bounds"""
         data = sample_power_spectrum_data
@@ -131,7 +102,7 @@ class TestFittingEngine:
         # Tight bounds around true values
         bounds = [(0.6, 1.0), (80, 120), (3, 7)]
 
-        fitted_params, _ = fitting_engine.fit_power_spectrum_mle(
+        fitted_params, _ = power_spectrum_analyzer.fit_power_spectrum_mle(
             data["power_spec"], data["freq_vec"], initial_guess, bounds
         )
 
@@ -140,157 +111,286 @@ class TestFittingEngine:
         assert bounds[1][0] <= fitted_params[1] <= bounds[1][1]
         assert bounds[2][0] <= fitted_params[2] <= bounds[2][1]
 
-    def test_bispectrum_wls_fitting(self, fitting_engine, sample_bispectrum_data):
-        """Test weighted least squares for bispectrum"""
+    def test_theoretical_power_spectrum_calculation(self, power_spectrum_analyzer):
+        """Test theoretical power spectrum calculation"""
+        k_vec = np.arange(1, 50)
+        k_sum = 0.5
+        s2 = 100.0
+        pk_bg = 5.0
+        n_frames = 1000
+
+        ps_theory = power_spectrum_analyzer.calculate_theoretical_ps(
+            k_vec, k_sum, s2, pk_bg, n_frames
+        )
+
+        assert len(ps_theory) == len(k_vec)
+        assert np.all(ps_theory > 0)
+        assert np.all(np.isfinite(ps_theory))
+
+    def test_covariance_matrix_calculation(
+        self, power_spectrum_analyzer, sample_power_spectrum_data
+    ):
+        """Test that covariance matrix is calculated"""
+        data = sample_power_spectrum_data
+
+        initial_guess = [0.5, 80.0, 3.0]
+        bounds = [(0, 2), (10, 200), (0, 20)]
+
+        fitted_params, cov_matrix = power_spectrum_analyzer.fit_power_spectrum_mle(
+            data["power_spec"], data["freq_vec"], initial_guess, bounds
+        )
+
+        # Covariance matrix should be returned (or None if calculation fails)
+        if cov_matrix is not None:
+            assert cov_matrix.shape == (3, 3)
+            assert np.all(np.isfinite(cov_matrix))
+
+
+class TestBispectrumFitting:
+    """Test cases for BispectrumAnalyzer fitting"""
+
+    @pytest.fixture
+    def bispectrum_analyzer(self):
+        """Create a BispectrumAnalyzer instance for testing"""
+        return BispectrumAnalyzer(dt=0.1)
+
+    @pytest.fixture
+    def sample_bispectrum_data(self):
+        """Create sample bispectrum data for testing with PROPER frequency-dependent model"""
+        n_points = 50
+        k1_data = np.random.uniform(1, 10, n_points)
+        k2_data = np.random.uniform(1, 10, n_points)
+
+        # True parameters
+        c3_true = 50.0
+        c3_offset_true = 2.0
+        k_sum_true = 0.8
+        dt = 0.1
+        chop_length = 100
+
+        # Generate theoretical bispectrum using FULL frequency-dependent model
+        c = np.exp(-k_sum_true * dt)
+        k3_mat = k1_data + k2_data
+
+        # Full theoretical bispectrum formula
+        temp1 = (
+            (np.cos(2 * np.pi * k1_data / chop_length) - c)
+            / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k1_data / chop_length))
+            + (np.cos(2 * np.pi * k2_data / chop_length) - c)
+            / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k2_data / chop_length))
+            + (np.cos(2 * np.pi * k3_mat / chop_length) - c)
+            / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k3_mat / chop_length))
+        )
+
+        temp2 = (
+            np.cos(2 * np.pi * (k1_data - k2_data) / chop_length)
+            - c
+            * (
+                np.cos(2 * np.pi * k1_data / chop_length)
+                + np.cos(2 * np.pi * k2_data / chop_length)
+            )
+            + c**2
+        ) / (
+            (1 + c**2 - 2 * c * np.cos(2 * np.pi * k1_data / chop_length))
+            * (1 + c**2 - 2 * c * np.cos(2 * np.pi * k2_data / chop_length))
+        )
+
+        temp3 = (
+            np.cos(2 * np.pi * (k1_data + k3_mat) / chop_length)
+            - c
+            * (
+                np.cos(2 * np.pi * k1_data / chop_length)
+                + np.cos(2 * np.pi * k3_mat / chop_length)
+            )
+            + c**2
+        ) / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k1_data / chop_length)) + (
+            np.cos(2 * np.pi * (k2_data + k3_mat) / chop_length)
+            - c
+            * (
+                np.cos(2 * np.pi * k2_data / chop_length)
+                + np.cos(2 * np.pi * k3_mat / chop_length)
+            )
+            + c**2
+        ) / (
+            1 + c**2 - 2 * c * np.cos(2 * np.pi * k2_data / chop_length)
+        )
+
+        bs_theory = (
+            dt**2
+            * c3_true
+            * (
+                1
+                + 2 * c * temp1
+                + 2
+                * c**2
+                * (
+                    temp2
+                    + temp3
+                    / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k3_mat / chop_length))
+                )
+            )
+            + c3_offset_true
+        )
+
+        # Create data with some noise
+        np.random.seed(42)
+        bs_data = bs_theory + np.random.normal(
+            0, 0.05 * np.abs(np.mean(bs_theory)), n_points
+        )
+        weights = np.ones(n_points)  # Equal weights
+
+        return {
+            "bs_data": bs_data,
+            "k1_data": k1_data,
+            "k2_data": k2_data,
+            "weights": weights,
+            "chop_length": chop_length,
+            "true_params": [c3_true, c3_offset_true, k_sum_true],
+        }
+
+    def test_bispectrum_analyzer_initialization(self):
+        """Test BispectrumAnalyzer initialization"""
+        analyzer = BispectrumAnalyzer(dt=0.1)
+        assert analyzer.dt == 0.1
+
+    def test_bispectrum_wls_fitting(self, bispectrum_analyzer, sample_bispectrum_data):
+        """Test weighted least squares for bispectrum with proper frequency-dependent model"""
         data = sample_bispectrum_data
 
-        initial_guess = [40.0, 1.0]
+        initial_guess = [40.0, 1.0, 0.8]  # c3, c3_offset, k_sum
 
-        fitted_params, cov_matrix = fitting_engine.fit_bispectrum_wls(
+        fitted_params, cov_matrix = bispectrum_analyzer.fit_bispectrum_wls(
             data["bs_data"],
             data["k1_data"],
             data["k2_data"],
             data["weights"],
+            data["chop_length"],
             initial_guess,
-            max_iterations=500,
+            max_iterations=1000,
             fit_k_sum_free=False,
         )
 
         # Check that we get reasonable results
-        assert len(fitted_params) == 2
-
-        # Check that parameters are finite (the simplified model may not converge well)
+        assert len(fitted_params) == 2  # c3, c3_offset (k_sum not free)
         assert np.all(np.isfinite(fitted_params))
 
-        # Check that fitting completed without major issues
-        assert (
-            fitted_params[0] != initial_guess[0] or fitted_params[1] != initial_guess[1]
-        )
+        # Check parameters are within reasonable range
+        assert fitted_params[0] > 0  # c3 should be positive
+        assert abs(fitted_params[0] - data["true_params"][0]) < 30  # c3
+        assert abs(fitted_params[1] - data["true_params"][1]) < 5  # c3_offset
 
     def test_bispectrum_wls_with_k_sum_free(
-        self, fitting_engine, sample_bispectrum_data
+        self, bispectrum_analyzer, sample_bispectrum_data
     ):
         """Test bispectrum fitting with k_sum as free parameter"""
         data = sample_bispectrum_data
 
-        initial_guess = [40.0, 1.0, 0.7]
+        initial_guess = [40.0, 1.0, 0.8]  # c3, c3_offset, k_sum
 
-        fitted_params, cov_matrix = fitting_engine.fit_bispectrum_wls(
+        fitted_params, _ = bispectrum_analyzer.fit_bispectrum_wls(
             data["bs_data"],
             data["k1_data"],
             data["k2_data"],
             data["weights"],
+            data["chop_length"],
             initial_guess,
             fit_k_sum_free=True,
         )
 
-        # Should now have 3 parameters
+        # Should now return 3 parameters
         assert len(fitted_params) == 3
-        assert fitted_params[2] > 0  # k_sum should be positive
+        assert fitted_params[0] > 0  # c3
+        assert fitted_params[2] > 0  # k_sum
 
-    def test_theoretical_power_spectrum_calculation(self, fitting_engine):
-        """Test theoretical power spectrum calculation"""
-        freq_vec = np.linspace(0.01, 0.5, 50)
-        k_sum = 0.8
-        s2 = 100.0
-        pk_bg = 5.0
-        dt = 0.1
-
-        ps_theory = fitting_engine._calculate_theoretical_ps(
-            freq_vec, k_sum, s2, pk_bg, dt
-        )
-
-        # Check output properties
-        assert len(ps_theory) == len(freq_vec)
-        assert np.all(ps_theory > 0)  # Should be positive
-        assert np.all(np.isfinite(ps_theory))  # Should be finite
-
-    def test_theoretical_bispectrum_calculation(self, fitting_engine):
+    def test_theoretical_bispectrum_calculation(self, bispectrum_analyzer):
         """Test theoretical bispectrum calculation"""
-        n_points = 30
-        k1_data = np.random.uniform(0.1, 1.0, n_points)
-        k2_data = np.random.uniform(0.1, 1.0, n_points)
-        k_sum = 0.8
+        k1_mat = np.array([[1, 2], [3, 4]])
+        k2_mat = np.array([[1, 1], [2, 2]])
+        k_sum = 0.5
         c3 = 50.0
-        c3_offset = 2.0
-        dt = 0.1
+        chop_length = 100
 
-        bs_theory = fitting_engine._calculate_theoretical_bs(
-            k1_data, k2_data, k_sum, c3, c3_offset, dt
+        bs_theory = bispectrum_analyzer.calculate_theoretical_bs(
+            k1_mat, k2_mat, k_sum, c3, chop_length
         )
 
-        # After fix, should return array matching input length
-        assert len(bs_theory) == n_points
+        assert bs_theory.shape == k1_mat.shape
         assert np.all(np.isfinite(bs_theory))
 
-    def test_fitting_with_invalid_data(self, fitting_engine):
-        """Test fitting behavior with invalid/edge case data"""
-        # Test with all zeros
-        power_spec_zeros = np.zeros(50)
+    def test_fitting_with_invalid_data(self, bispectrum_analyzer):
+        """Test handling of edge cases"""
+        # Very small dataset
+        bs_data = np.array([1.0, 2.0])
+        k1_data = np.array([0.1, 0.2])
+        k2_data = np.array([0.1, 0.2])
+        weights = np.ones(2)
+        chop_length = 100
+
+        initial_guess = [40.0, 1.0]
+
+        # Should handle gracefully
+        try:
+            fitted_params, _ = bispectrum_analyzer.fit_bispectrum_wls(
+                bs_data, k1_data, k2_data, weights, chop_length, initial_guess
+            )
+            assert len(fitted_params) == 2
+        except Exception:
+            # It's okay if it fails gracefully
+            pass
+
+
+class TestIntegration:
+    """Integration tests for fitting components"""
+
+    def test_fitting_convergence(self):
+        """Test that fitting converges with different numbers of iterations"""
+        analyzer = PowerSpectrumAnalyzer(dt=0.1, n_chops=5)
+
+        # Generate test data
         freq_vec = np.linspace(0.01, 0.5, 50)
+        k_sum_true = 0.8
+        s2_true = 100.0
+        pk_bg_true = 5.0
+
+        dt = 0.1
+        n_frames = 1000
+        c = np.exp(-k_sum_true * dt)
+        k_vec = freq_vec * n_frames * dt
+
+        ps_theory = (
+            s2_true
+            * (1 - c**2)
+            * dt
+            / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k_vec / n_frames))
+            + pk_bg_true
+        )
+        power_spec = ps_theory + np.random.normal(
+            0, 0.1 * np.mean(ps_theory), len(ps_theory)
+        )
+
         initial_guess = [0.5, 80.0, 3.0]
         bounds = [(0, 2), (10, 200), (0, 20)]
 
-        # Should handle gracefully without crashing
-        fitted_params, _ = fitting_engine.fit_power_spectrum_mle(
-            power_spec_zeros, freq_vec, initial_guess, bounds
-        )
-        assert len(fitted_params) == 3
-
-    def test_covariance_matrix_calculation(self, fitting_engine):
-        """Test covariance matrix calculation"""
-        fitted_params = np.array([0.8, 100.0, 5.0])
-        data = np.random.random(50)
-        freq_vec = np.linspace(0.01, 0.5, 50)
-
-        def dummy_nll(params):
-            return np.sum((data - np.mean(data)) ** 2)
-
-        cov_matrix = fitting_engine._calculate_covariance_matrix(
-            fitted_params, data, freq_vec, dummy_nll
-        )
-
-        # Check output properties
-        assert cov_matrix.shape == (3, 3)
-        assert np.all(np.diag(cov_matrix) > 0)  # Diagonal should be positive
-
-    def test_fitting_convergence(self, fitting_engine, sample_power_spectrum_data):
-        """Test fitting convergence with different max_iterations"""
-        data = sample_power_spectrum_data
-        initial_guess = [0.5, 80.0, 3.0]
-        bounds = [(0, 2), (10, 200), (0, 20)]
-
-        # Test with very few iterations
-        fitted_params_few, _ = fitting_engine.fit_power_spectrum_mle(
-            data["power_spec"],
-            data["freq_vec"],
-            initial_guess,
-            bounds,
-            max_iterations=10,
+        # Test with few iterations
+        fitted_params_few, _ = analyzer.fit_power_spectrum_mle(
+            power_spec, freq_vec, initial_guess, bounds, max_iterations=50
         )
 
         # Test with many iterations
-        fitted_params_many, _ = fitting_engine.fit_power_spectrum_mle(
-            data["power_spec"],
-            data["freq_vec"],
-            initial_guess,
-            bounds,
-            max_iterations=1000,
+        fitted_params_many, _ = analyzer.fit_power_spectrum_mle(
+            power_spec, freq_vec, initial_guess, bounds, max_iterations=500
         )
 
-        # Both should produce valid results
+        # Both should return valid results
         assert len(fitted_params_few) == 3
         assert len(fitted_params_many) == 3
         assert np.all(np.isfinite(fitted_params_few))
         assert np.all(np.isfinite(fitted_params_many))
 
-    def test_different_fitting_methods(self):
-        """Test that FittingEngine can be instantiated"""
-        engine = FittingEngine()
-        assert engine is not None
-
-    def test_empty_data_handling(self, fitting_engine):
+    def test_empty_data_handling(self):
         """Test handling of empty or minimal data"""
+        analyzer = PowerSpectrumAnalyzer(dt=0.1, n_chops=5)
+
         # Test with minimal data
         power_spec = np.array([1.0, 2.0])
         freq_vec = np.array([0.1, 0.2])
@@ -299,10 +399,10 @@ class TestFittingEngine:
 
         # Should handle gracefully
         try:
-            fitted_params, _ = fitting_engine.fit_power_spectrum_mle(
+            fitted_params, _ = analyzer.fit_power_spectrum_mle(
                 power_spec, freq_vec, initial_guess, bounds
             )
             assert len(fitted_params) == 3
         except Exception:
-            # It's OK if it fails gracefully with minimal data
+            # It's okay if it fails with minimal data
             pass

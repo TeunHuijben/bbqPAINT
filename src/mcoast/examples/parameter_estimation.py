@@ -10,7 +10,8 @@ import numpy as np
 from scipy import stats
 
 from mcoast.analysis import AnalysisParameters, ParameterEstimator
-from mcoast.analysis.fitting import FittingEngine
+from mcoast.analysis.bispectrum import BispectrumAnalyzer
+from mcoast.analysis.power_spectrum import PowerSpectrumAnalyzer
 from mcoast.simulation import SimulationParameters, TraceGenerator
 from mcoast.utils.statistics import block_bispectrum, block_power_spectrum
 
@@ -26,11 +27,11 @@ def main():
     sim_params = SimulationParameters()
     sim_params.k_on = 0.15
     sim_params.k_off = 0.3
-    sim_params.n_emitters = 3
+    sim_params.n_emitters = 4
     sim_params.dt = 0.2
-    sim_params.measurement_time = 5000
+    sim_params.measurement_time = 3600
     sim_params.single_molecule_intensity = 1.0
-    sim_params.sigma_noise = 0.01
+    sim_params.sigma_noise = 0.2
 
     generator = TraceGenerator(sim_params)
     time_points, intensity = generator.generate_trace()
@@ -42,9 +43,10 @@ def main():
     analysis_params = AnalysisParameters()
     analysis_params.dt = sim_params.dt
     analysis_params.measurement_time = sim_params.measurement_time
-    analysis_params.n_chops = 5
+    analysis_params.n_chops = 20
     analysis_params.fit_power_spectrum = True
     analysis_params.fit_bispectrum = True
+    analysis_params.fit_k_sum_free = True
 
     estimator = ParameterEstimator(intensity, analysis_params)
     results = estimator.estimate_parameters()
@@ -53,11 +55,21 @@ def main():
 
     # Step 3: Print results
     print("3. Estimation Results:")
-    print(f"   N = {results.n_emitters_fit:.2f} (true: {sim_params.n_emitters})")
-    print(f"   k_on = {results.k_on_fit:.3f} Hz (true: {sim_params.k_on})")
-    print(f"   k_off = {results.k_off_fit:.3f} Hz (true: {sim_params.k_off})")
+    print("   Power Spectrum Fit:")
     print(
-        f"   I_single = {results.single_molecule_intensity_fit:.2f} (true: {sim_params.single_molecule_intensity})"
+        f"      k_sum = {results.k_sum_fit:.3f} Hz (true: {sim_params.k_on + sim_params.k_off})"
+    )
+    print(f"      s2 = {results.s2_fit:.3f}")
+    print(f"      pk_bg = {results.pk_bg_fit:.3f}")
+    print("   Bispectrum Fit:")
+    print(f"      C3 = {results.c3_fit:.3f}")
+    print(f"      C3_offset = {results.c3_offset_fit:.3f}")
+    print("   Derived Parameters:")
+    print(f"      N = {results.n_emitters_fit:.2f} (true: {sim_params.n_emitters})")
+    print(f"      k_on = {results.k_on_fit:.3f} Hz (true: {sim_params.k_on})")
+    print(f"      k_off = {results.k_off_fit:.3f} Hz (true: {sim_params.k_off})")
+    print(
+        f"      I_single = {results.single_molecule_intensity_fit:.2f} (true: {sim_params.single_molecule_intensity})"
     )
     print()
 
@@ -136,13 +148,17 @@ def create_comprehensive_figure(
 
         # Calculate and plot theoretical fit
         if results.k_sum_fit is not None and results.s2_fit is not None:
-            fitting_engine = FittingEngine()
-            theoretical_ps = fitting_engine._calculate_theoretical_ps(
-                freq_vec,
+            ps_analyzer = PowerSpectrumAnalyzer(
+                dt=analysis_params.dt, n_chops=analysis_params.n_chops
+            )
+            # Calculate k_vec for theoretical model
+            k_vec = freq_vec * n_points * analysis_params.dt
+            theoretical_ps = ps_analyzer.calculate_theoretical_ps(
+                k_vec,
                 results.k_sum_fit,
                 results.s2_fit,
                 results.pk_bg_fit,
-                analysis_params.dt,
+                n_points,
             )
             ax3.plot(freq_vec, theoretical_ps, "r-", linewidth=2, label="Fit")
 
@@ -183,53 +199,94 @@ def create_comprehensive_figure(
         ax4.grid(True, alpha=0.3)
 
     # Panel 5: Bispectrum (half experimental, half theoretical)
+    # MATLAB uses FULL bispectrum for visualization (func_calc_BS_full), not triangular!
     if results.bispectrum is not None:
         ax5 = plt.subplot(2, 3, 5)
 
-        # Get bispectrum data
-        freq_vec = np.arange(1, results.bispectrum.shape[0] + 1) / (
-            len(intensity) * analysis_params.dt
-        )
-        k1_mat, k2_mat = np.meshgrid(freq_vec, freq_vec)
+        # Calculate FULL bispectrum for visualization (matching MATLAB)
+        chopped_traces = PowerSpectrumAnalyzer(
+            analysis_params.dt, analysis_params.n_chops
+        ).chop_trace(intensity)
 
-        # Block for visualization
-        blocked_bs, blocked_k1, blocked_k2 = block_bispectrum(
-            results.bispectrum, k1_mat, k2_mat, num_blocks_goal=50
+        bs_analyzer = BispectrumAnalyzer(dt=analysis_params.dt)
+
+        # w_max = 6 rad/s in MATLAB (for frequency cutoff)
+        freq_max_rad = 6.0  # Match MATLAB w_max
+        bs_full, freq_1_full, freq_2_full = bs_analyzer.calculate_full_bispectrum(
+            chopped_traces, freq_max=freq_max_rad
         )
 
-        # Create half-half plot (experimental on one side, theoretical on other)
-        combined_bs = blocked_bs.copy()
+        # Block for visualization (num_blocks_goal=75 to match MATLAB)
+        blocked_bs, blocked_f1, blocked_f2 = block_bispectrum(
+            bs_full, freq_1_full, freq_2_full, num_blocks_goal=75
+        )
+
+        # Calculate theoretical full bispectrum for comparison
         if results.k_sum_fit is not None and results.c3_fit is not None:
-            fitting_engine = FittingEngine()
-            # Calculate theoretical bispectrum for all points
-            k1_flat = k1_mat.flatten()
-            k2_flat = k2_mat.flatten()
-            theoretical_bs_flat = fitting_engine._calculate_theoretical_bs(
-                k1_flat,
-                k2_flat,
-                results.k_sum_fit,
-                results.c3_fit,
-                results.c3_offset_fit,
-                analysis_params.dt,
+            chop_length = chopped_traces.shape[0]
+
+            # Convert freq matrices to k-indices for theoretical calculation
+            k1_indices = freq_1_full * chop_length * analysis_params.dt
+            k2_indices = freq_2_full * chop_length * analysis_params.dt
+
+            # CRITICAL: Multiply by N_fit to match MATLAB (BS scales with N emitters)
+            theoretical_bs_full = (
+                results.n_emitters_fit
+                * bs_analyzer.calculate_theoretical_bs(
+                    k1_indices,
+                    k2_indices,
+                    results.k_sum_fit,
+                    results.c3_fit,
+                    chop_length,
+                )
             )
-            theoretical_bs = theoretical_bs_flat.reshape(k1_mat.shape)
 
             # Block theoretical bispectrum
             blocked_bs_theo, _, _ = block_bispectrum(
-                theoretical_bs, k1_mat, k2_mat, num_blocks_goal=50
+                theoretical_bs_full, freq_1_full, freq_2_full, num_blocks_goal=75
             )
 
-            # Use lower triangle for experimental, upper triangle for theoretical
-            mask = np.triu_indices_from(combined_bs, k=1)
-            combined_bs[mask] = blocked_bs_theo[mask]
+            # Create half-half plot like MATLAB using LOG SCALE
+            # MATLAB: triu(flipud(real(log(B_exp))), 1) + triu(flipud(real(log(B_theo))))'
+            bs_exp_log = np.log(np.abs(blocked_bs) + 1e-10)
+            bs_theo_log = np.log(np.abs(blocked_bs_theo) + 1e-10)
+
+            # Flip upside down (MATLAB uses flipud)
+            bs_exp_flipped = np.flipud(bs_exp_log)
+            bs_theo_flipped = np.flipud(bs_theo_log)
+
+            # Create the half-half: upper triangle from exp, lower from theory
+            # MATLAB: BS_halfhalf1 = triu(flipud(log(B_raw)), 1)
+            #         BS_halfhalf2 = triu(flipud(log(B_theo)))
+            #         BS_halfhalf = BS_halfhalf1 + BS_halfhalf2'
+            combined_bs = np.triu(bs_exp_flipped, k=1) + np.triu(bs_theo_flipped, k=0).T
+
+            # Also flip the frequency axes to match
+            blocked_f1_flipped = np.flipud(blocked_f1)
+            blocked_f2_flipped = np.flipud(blocked_f2)
+        else:
+            combined_bs = np.log(np.abs(blocked_bs) + 1e-10)
+            blocked_f1_flipped = np.flipud(blocked_f1)
+            blocked_f2_flipped = np.flipud(blocked_f2)
 
         im = ax5.pcolormesh(
-            blocked_k1, blocked_k2, combined_bs, shading="auto", cmap="viridis"
+            blocked_f1_flipped,
+            blocked_f2_flipped,
+            combined_bs,
+            shading="auto",
+            cmap="viridis",
         )
-        ax5.set_xlabel("k1 (Hz)")
-        ax5.set_ylabel("k2 (Hz)")
-        ax5.set_title("Bispectrum (Exp/Theory)")
-        plt.colorbar(im, ax=ax5)
+
+        # Add diagonal line to show separation between exp and theory
+        f_extent = [blocked_f1_flipped.min(), blocked_f1_flipped.max()]
+        ax5.plot(f_extent, f_extent, "w-", linewidth=2, alpha=0.7)
+
+        ax5.set_xlabel("$f_{k_1}$ [s$^{-1}$]")
+        ax5.set_ylabel("$f_{k_2}$ [s$^{-1}$]")
+        ax5.set_title("Bispectrum $B(k_1,k_2)$")
+        ax5.set_aspect("equal")
+        cbar = plt.colorbar(im, ax=ax5)
+        cbar.set_label("[s$^2$]")
 
     # Panel 6: Bispectrum value distribution
     if results.bispectrum is not None:

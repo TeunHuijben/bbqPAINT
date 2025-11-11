@@ -78,24 +78,36 @@ def block_bispectrum(
     Returns:
         Tuple of (blocked_bispectrum, blocked_k1, blocked_k2)
     """
-    orig_size = bispectrum.shape[0]
-    block_size = max(1, orig_size // int(np.sqrt(num_blocks_goal)))
+    orig_shape = bispectrum.shape
 
-    new_size = orig_size // block_size
-    blocked_bs = np.zeros((new_size, new_size))
-    blocked_k1 = np.zeros((new_size, new_size))
-    blocked_k2 = np.zeros((new_size, new_size))
+    # Calculate block size to achieve num_blocks_goal along each dimension
+    # MATLAB: blockSize = floor(N_B/numBlocks_goal)
+    block_size_0 = max(1, orig_shape[0] // num_blocks_goal)
+    block_size_1 = max(1, orig_shape[1] // num_blocks_goal)
 
-    for i in range(new_size):
-        for j in range(new_size):
-            i_start = i * block_size
-            i_end = min((i + 1) * block_size, orig_size)
-            j_start = j * block_size
-            j_end = min((j + 1) * block_size, orig_size)
+    # Make block sizes odd (MATLAB does this for symmetry)
+    if block_size_0 > 1 and block_size_0 % 2 == 0:
+        block_size_0 -= 1
+    if block_size_1 > 1 and block_size_1 % 2 == 0:
+        block_size_1 -= 1
+
+    new_shape = (orig_shape[0] // block_size_0, orig_shape[1] // block_size_1)
+
+    blocked_bs = np.zeros(new_shape)
+    blocked_k1 = np.zeros(new_shape)
+    blocked_k2 = np.zeros(new_shape)
+
+    for i in range(new_shape[0]):
+        for j in range(new_shape[1]):
+            i_start = i * block_size_0
+            i_end = min((i + 1) * block_size_0, orig_shape[0])
+            j_start = j * block_size_1
+            j_end = min((j + 1) * block_size_1, orig_shape[1])
 
             if i_end > i_start and j_end > j_start:
-                blocked_bs[i, j] = np.mean(bispectrum[i_start:i_end, j_start:j_end])
-                blocked_k1[i, j] = np.mean(k1_mat[i_start:i_end, j_start:j_end])
-                blocked_k2[i, j] = np.mean(k2_mat[i_start:i_end, j_start:j_end])
+                block_region = bispectrum[i_start:i_end, j_start:j_end]
+                blocked_bs[i, j] = np.nanmean(block_region)
+                blocked_k1[i, j] = np.nanmean(k1_mat[i_start:i_end, j_start:j_end])
+                blocked_k2[i, j] = np.nanmean(k2_mat[i_start:i_end, j_start:j_end])
 
     return blocked_bs, blocked_k1, blocked_k2

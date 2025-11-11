@@ -254,9 +254,8 @@ class TestParameterEstimator:
 
         assert estimator.trace is sample_trace
         assert estimator.params is analysis_params
-        assert hasattr(estimator, "spectral_analyzer")
+        assert hasattr(estimator, "power_spectrum_analyzer")
         assert hasattr(estimator, "bispectrum_analyzer")
-        assert hasattr(estimator, "fitting_engine")
         assert isinstance(estimator.results, AnalysisResults)
 
     def test_estimator_initialization_validates_params(self, sample_trace):
@@ -332,8 +331,8 @@ class TestParameterEstimator:
         estimator = ParameterEstimator(sample_trace, analysis_params)
 
         # Calculate power spectrum first
-        freq_vec, power_spec = estimator.spectral_analyzer.calculate_power_spectrum(
-            sample_trace
+        freq_vec, power_spec = (
+            estimator.power_spectrum_analyzer.calculate_power_spectrum(sample_trace)
         )
 
         # Fit power spectrum
