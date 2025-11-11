@@ -89,8 +89,7 @@ class BispectrumAnalyzer:
         """
         Calculate FULL bispectrum including negative frequencies (for visualization).
 
-        This matches MATLAB's func_calc_BS_full, creating a square matrix that includes
-        both positive and negative frequencies up to freq_max.
+        Creating a square matrix that includes both positive and negative frequencies up to freq_max.
 
         Args:
             chopped_traces: Matrix of chopped traces [chop_length x n_chops]
@@ -111,7 +110,7 @@ class BispectrumAnalyzer:
             np.fft.fft(chopped_traces, axis=0), axes=0
         )
 
-        # Create frequency vector (zero-centered, matching MATLAB)
+        # Create frequency vector (zero-centered)
         freq_vec_hz = np.fft.fftshift(np.fft.fftfreq(chop_length, self.dt))
         freq_vec_rad = freq_vec_hz * 2 * np.pi  # Convert to rad/s
 
@@ -425,8 +424,7 @@ class BispectrumAnalyzer:
                         / (1 + c**2 - 2 * c * np.cos(2 * np.pi * k3_mat / chop_length))
                     )
                 )
-                + c3_offset
-                ** 2  # CRITICAL: Square the offset to match MATLAB implementation
+                + c3_offset**2
             )
 
             return bs_theory

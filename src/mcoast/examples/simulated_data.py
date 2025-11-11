@@ -2,7 +2,7 @@
 Parameter estimation example for mCOAST.
 
 This script demonstrates comprehensive analysis and visualization of fluorescence traces
-to estimate molecular parameters. Includes 6-panel figure similar to MATLAB demo.
+to estimate molecular parameters. Includes 6-panel figure.
 """
 
 import matplotlib.pyplot as plt
@@ -87,7 +87,7 @@ def create_comprehensive_figure(
     intensity, time_points, results, sim_params, analysis_params
 ):
     """
-    Create 6-panel comprehensive visualization similar to MATLAB demo.
+    Create 6-panel comprehensive visualization.
 
     Panels:
     1. Intensity trace with mean line
@@ -199,26 +199,28 @@ def create_comprehensive_figure(
         ax4.grid(True, alpha=0.3)
 
     # Panel 5: Bispectrum (half experimental, half theoretical)
-    # MATLAB uses FULL bispectrum for visualization (func_calc_BS_full), not triangular!
     if results.bispectrum is not None:
         ax5 = plt.subplot(2, 3, 5)
 
-        # Calculate FULL bispectrum for visualization (matching MATLAB)
+        # Calculate FULL bispectrum for visualization
         chopped_traces = PowerSpectrumAnalyzer(
             analysis_params.dt, analysis_params.n_chops
         ).chop_trace(intensity)
 
         bs_analyzer = BispectrumAnalyzer(dt=analysis_params.dt)
 
-        # w_max = 6 rad/s in MATLAB (for frequency cutoff)
-        freq_max_rad = 6.0  # Match MATLAB w_max
+        # w_max = 6 rad/s (for frequency cutoff)
+        freq_max_rad = 6.0  # TODO: hardcoded value
         bs_full, freq_1_full, freq_2_full = bs_analyzer.calculate_full_bispectrum(
             chopped_traces, freq_max=freq_max_rad
         )
 
-        # Block for visualization (num_blocks_goal=75 to match MATLAB)
+        # Block for visualization (num_blocks_goal=75)
         blocked_bs, blocked_f1, blocked_f2 = block_bispectrum(
-            bs_full, freq_1_full, freq_2_full, num_blocks_goal=75
+            bs_full,
+            freq_1_full,
+            freq_2_full,
+            num_blocks_goal=75,  # TODO: hardcoded value
         )
 
         # Calculate theoretical full bispectrum for comparison
@@ -229,7 +231,6 @@ def create_comprehensive_figure(
             k1_indices = freq_1_full * chop_length * analysis_params.dt
             k2_indices = freq_2_full * chop_length * analysis_params.dt
 
-            # CRITICAL: Multiply by N_fit to match MATLAB (BS scales with N emitters)
             theoretical_bs_full = (
                 results.n_emitters_fit
                 * bs_analyzer.calculate_theoretical_bs(
@@ -246,19 +247,15 @@ def create_comprehensive_figure(
                 theoretical_bs_full, freq_1_full, freq_2_full, num_blocks_goal=75
             )
 
-            # Create half-half plot like MATLAB using LOG SCALE
-            # MATLAB: triu(flipud(real(log(B_exp))), 1) + triu(flipud(real(log(B_theo))))'
+            # Create half-half plot using LOG SCALE
             bs_exp_log = np.log(np.abs(blocked_bs) + 1e-10)
             bs_theo_log = np.log(np.abs(blocked_bs_theo) + 1e-10)
 
-            # Flip upside down (MATLAB uses flipud)
+            # Flip upside down
             bs_exp_flipped = np.flipud(bs_exp_log)
             bs_theo_flipped = np.flipud(bs_theo_log)
 
             # Create the half-half: upper triangle from exp, lower from theory
-            # MATLAB: BS_halfhalf1 = triu(flipud(log(B_raw)), 1)
-            #         BS_halfhalf2 = triu(flipud(log(B_theo)))
-            #         BS_halfhalf = BS_halfhalf1 + BS_halfhalf2'
             combined_bs = np.triu(bs_exp_flipped, k=1) + np.triu(bs_theo_flipped, k=0).T
 
             # Also flip the frequency axes to match

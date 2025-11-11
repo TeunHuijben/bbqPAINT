@@ -154,8 +154,6 @@ class ParameterEstimator:
         )
 
         # Prepare initial guess
-        # CRITICAL: Use central moment (third cumulant), not raw moment
-        # MATLAB moment(x,3) = E[(X-mean)^3], not E[X^3]
         c3_initial = self.params.initial_guess.c3 or np.mean(
             (self.trace - np.mean(self.trace)) ** 3
         )
@@ -205,7 +203,7 @@ class ParameterEstimator:
             and self.results.c3_fit is not None
         ):
 
-            # Calculate derived parameters using the formulas from MATLAB code
+            # Calculate derived parameters
             i_mean = np.mean(self.trace)
 
             # Number of emitters

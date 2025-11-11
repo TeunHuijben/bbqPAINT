@@ -81,11 +81,10 @@ def block_bispectrum(
     orig_shape = bispectrum.shape
 
     # Calculate block size to achieve num_blocks_goal along each dimension
-    # MATLAB: blockSize = floor(N_B/numBlocks_goal)
     block_size_0 = max(1, orig_shape[0] // num_blocks_goal)
     block_size_1 = max(1, orig_shape[1] // num_blocks_goal)
 
-    # Make block sizes odd (MATLAB does this for symmetry)
+    # Make block sizes odd
     if block_size_0 > 1 and block_size_0 % 2 == 0:
         block_size_0 -= 1
     if block_size_1 > 1 and block_size_1 % 2 == 0:
