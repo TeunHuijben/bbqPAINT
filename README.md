@@ -5,14 +5,24 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/mcoast.svg?color=green)](https://python.org)
 [![CI](https://github.com/TeunHuijben/mcoast/actions/workflows/ci.yml/badge.svg)](https://github.com/TeunHuijben/mcoast/actions/workflows/ci.yml)
 
-Molecular counting from a single intensity trace
+**M**olecular **CO**unting from **A** **S**ingle intensity **T**race
+
+A Python package for counting the number of blinking molecules from fluorescence intensity traces using power spectrum and bispectrum analysis. mCOAST extracts molecular parameters (k_on, k_off, number of emitters) from fluorescence intensity traces.
 
 ## Installation
+
+### From Source (Recommended for Development)
 
 ```bash
 git clone https://github.com/TeunHuijben/mcoast.git
 cd mcoast
-pip install -e .
+pip install -e ".[dev]"  # Install with development dependencies
+```
+
+### From PyPI (Coming Soon)
+
+```bash
+pip install mcoast
 ```
 
 ## Quick Start
@@ -24,13 +34,13 @@ from mcoast.simulation import SimulationParameters, TraceGenerator
 
 # Create simulation parameters
 sim_params = SimulationParameters()
-sim_params.k_on = 1.0          # On rate (Hz)
-sim_params.k_off = 2.0         # Off rate (Hz)
-sim_params.n_emitters = 4      # Number of emitters
-sim_params.dt = 0.1           # Sampling time (s)
-sim_params.measurement_time = 1000  # Total measurement time (s)
-sim_params.single_molecule_intensity = 40.0
-sim_params.sigma_noise = 2.0  # Noise standard deviation
+sim_params.k_on = 0.15                      # On rate (Hz)
+sim_params.k_off = 0.3                      # Off rate (Hz)
+sim_params.n_emitters = 4                   # Number of emitters
+sim_params.dt = 0.2                         # Sampling time (s)
+sim_params.measurement_time = 3600          # Total measurement time (s)
+sim_params.single_molecule_intensity = 1.0  # Single molecule brightness
+sim_params.sigma_noise = 0.2                # Noise standard deviation
 
 # Generate trace
 generator = TraceGenerator(sim_params)
@@ -44,55 +54,103 @@ from mcoast.analysis import AnalysisParameters, ParameterEstimator
 
 # Create analysis parameters
 analysis_params = AnalysisParameters()
-analysis_params.dt = 0.1
-analysis_params.measurement_time = 1000
-analysis_params.n_chops = 5
+analysis_params.dt = 0.2
+analysis_params.measurement_time = 3600
+analysis_params.n_chops = 20                # Number of trace segments for bispectrum
+analysis_params.fit_power_spectrum = True   # Fit power spectrum (k_sum, s2, pk_bg)
+analysis_params.fit_bispectrum = True       # Fit bispectrum (C3)
+analysis_params.fit_k_sum_free = True       # Refine k_sum in bispectrum fit
 
 # Analyze the trace
 estimator = ParameterEstimator(intensity, analysis_params)
 results = estimator.estimate_parameters()
 
-# Print results
-results.print_summary()
+# Access results
+print(f"Number of emitters: {results.n_emitters_fit:.2f}")
+print(f"k_on: {results.k_on_fit:.3f} Hz")
+print(f"k_off: {results.k_off_fit:.3f} Hz")
+print(f"Single molecule intensity: {results.single_molecule_intensity_fit:.2f}")
 ```
 
 ## Examples
 
 The package includes several example scripts demonstrating different use cases:
 
-- `basic_simulation.py`: Generate synthetic fluorescence traces
-- `parameter_estimation.py`: Analyze traces and estimate parameters
-- `experimental_data.py`: Analyze experimental data
+- **`1_basic_simulation.py`**: Generate synthetic fluorescence traces
+- **`2_simulated_data.py`**: Complete analysis pipeline from simulated trace
+- **`3_experimental_data.py`**: Complete analysis pipeline from experimental trace
 
 Run examples:
 
 ```bash
-python mcoast/examples/basic_simulation.py
-python mcoast/examples/parameter_estimation.py
-python mcoast/examples/experimental_data.py
+python src/mcoast/examples/1_basic_simulation.py
+python src/mcoast/examples/2_simulated_data.py
+python src/mcoast/examples/3_experimental_data.py
 ```
 
+## Testing
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src/mcoast --cov-report=html
+
+# Run specific test file
+pytest tests/test_parameter_estimation.py
+
+# Run pre-commit hooks
+pre-commit run --all-files
+```
+
+## What mCOAST Extracts
+
+From a single fluorescence intensity trace, mCOAST estimates:
+
+1. **k_on**: Fluorophore on-rate (binding/activation rate)
+2. **k_off**: Fluorophore off-rate (unbinding/deactivation rate)
+3. **N**: Number of independently blinking emitters
+4. **I_single**: Single-molecule brightness
+
+### How It Works
+
+1. **Power Spectrum Analysis** (2nd order):
+   - Extracts k_sum = k_on + k_off
+   - Extracts variance (s2) and background noise (pk_bg)
+   - Uses maximum likelihood estimation (MLE)
+
+2. **Bispectrum Analysis** (3rd order):
+   - Extracts third cumulant (C3)
+   - Uses weighted least squares (WLS) with full theoretical model
+
+3. **Molecular Parameters**:
+   - Combines power spectrum and bispectrum results
+   - Solves analytical equations to extract all four parameters
+   - Provides uncertainty estimates from covariance matrices
 
 ## Package Structure
 
 ```
 mcoast/
-├── simulation/          # Trace generation and simulation
-│   ├── parameters.py   # Simulation parameter classes
-│   ├── trace_generator.py
-│   └── noise_models.py
-├── analysis/            # Parameter estimation and analysis
-│   ├── parameters.py   # Analysis parameter classes
-│   ├── spectral_analysis.py
-│   ├── bispectrum.py
-│   ├── parameter_estimation.py
-│   └── fitting.py
-├── utils/               # Utility functions
-│   ├── statistics.py
-│   └── visualization.py
-└── examples/            # Example scripts
+├── simulation/              # Trace generation and simulation
+│   ├── parameters.py       # SimulationParameters dataclass
+│   ├── trace_generator.py  # TraceGenerator for blinking dynamics
+│   └── noise_models.py     # Gaussian noise injection
+├── analysis/                # Parameter estimation and analysis
+│   ├── parameters.py       # AnalysisParameters, AnalysisResults dataclasses
+│   ├── power_spectrum.py   # PowerSpectrumAnalyzer with MLE fitting
+│   ├── bispectrum.py       # BispectrumAnalyzer with WLS fitting
+│   └── parameter_estimation.py  # ParameterEstimator (main orchestrator)
+├── utils/                   # Utility functions
+│   ├── statistics.py       # Blocking analysis for visualization
+│   ├── preprocessing.py    # TracePreprocessor (detrending, smoothing, outlier removal)
+│   └── visualization.py    # Plotter for traces and spectra
+└── examples/                # Example scripts
+    ├── 1_basic_simulation.py
+    ├── 2_simulated_data.py
+    └── 3_experimental_data.py
 ```
-
 
 ## Citation
 
