@@ -76,9 +76,24 @@ print(f"Single molecule intensity: {results.single_molecule_intensity_fit:.2f}")
 
 Three example notebooks demonstrating different use cases are available in `src/mcoast/examples/`:
 
-- **`1_basic_simulation.ipynb`**: Generate synthetic fluorescence traces
-- **`2_simulated_data.ipynb`**: Complete analysis pipeline with comprehensive 6-panel visualization (simulated data)
-- **`3_experimental_data.ipynb`**: Complete analysis pipeline with comprehensive 6-panel visualization (experimental data)
+- Basic trace simulation:
+
+- mCOAST on simulated trace:
+- mCOAST on experimental trace:
+
+
+
+- **`1_basic_simulation.ipynb`**: Generate synthetic fluorescence traces <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/examples/colab/1_basic_simulation.ipynb" target="_blank">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+
+- **`2_simulated_data.ipynb`**: Complete mCOAST pipeline simulated data <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/examples/colab/2_simulated_data.ipynb" target="_blank">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+
+- **`3_experimental_data.ipynb`**: Complete mCOAST pipeline on experimental data <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/examples/colab/3_experimental_data.ipynb" target="_blank">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
 
 Download and open in Jupyter Notebook, Jupyter Lab, VS Code, or Google Colab. Each notebook contains clear explanations and organized code cells suitable for beginners.
 

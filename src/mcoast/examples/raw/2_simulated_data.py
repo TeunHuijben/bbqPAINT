@@ -12,6 +12,10 @@ We'll:
 4. Visualize the results in a comprehensive 6-panel figure
 """
 
+# %% tags=["colab"]
+# Install mcoast package (for Google Colab)
+# !pip install git+https://github.com/TeunHuijben/mcoast.git
+
 # %% Imports
 import matplotlib.pyplot as plt
 

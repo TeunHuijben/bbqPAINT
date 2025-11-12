@@ -8,6 +8,10 @@ using the mCOAST simulation module.
 We'll simulate fluorescence from blinking molecules and visualize the results.
 """
 
+# %% tags=["colab"]
+# Install mcoast package (for Google Colab)
+# !pip install git+https://github.com/TeunHuijben/mcoast.git
+
 # %% Imports
 import matplotlib.pyplot as plt
 import numpy as np
