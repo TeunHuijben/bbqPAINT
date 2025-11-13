@@ -433,12 +433,16 @@ class Plotter:
             ax4 = plt.subplot(2, 3, 4)
 
             # Normalize power spectrum values
-            ps_normalized = results.power_spectrum / np.mean(results.power_spectrum)
+            ps_normalized = results.power_spectrum / np.mean(
+                results.power_spectrum
+            )  # TODO: this seems wrong
+            ps_max = np.percentile(ps_normalized, 99)
+            ps_bins = np.linspace(0, ps_max, 30)
 
             # Plot histogram
             ax4.hist(
                 ps_normalized,
-                bins=30,
+                bins=ps_bins,
                 density=True,
                 alpha=0.7,
                 color="skyblue",
@@ -447,7 +451,7 @@ class Plotter:
             )
 
             # Plot theoretical exponential distribution
-            x = np.linspace(0, np.max(ps_normalized), 100)
+            x = np.linspace(0, ps_max, 90)
             ax4.plot(x, np.exp(-x), "r-", linewidth=2, label="Exp(-x)")
 
             ax4.set_xlabel("Normalized Power Spectrum")
@@ -552,11 +556,13 @@ class Plotter:
             # Flatten bispectrum and normalize
             bs_values = results.bispectrum.flatten()
             bs_normalized = (bs_values - np.mean(bs_values)) / np.std(bs_values)
+            bs_abs_max = np.percentile(np.abs(bs_normalized), 90)
+            bs_bins = np.linspace(-bs_abs_max, bs_abs_max, 30)
 
             # Plot histogram
             ax6.hist(
                 bs_normalized,
-                bins=30,
+                bins=bs_bins,
                 density=True,
                 alpha=0.7,
                 color="skyblue",
@@ -565,7 +571,7 @@ class Plotter:
             )
 
             # Plot theoretical normal distribution
-            x = np.linspace(np.min(bs_normalized), np.max(bs_normalized), 100)
+            x = np.linspace(-bs_abs_max, bs_abs_max, 100)
             ax6.plot(x, stats.norm.pdf(x, 0, 1), "r-", linewidth=2, label="N(0,1)")
 
             ax6.set_xlabel("Normalized Bispectrum")
