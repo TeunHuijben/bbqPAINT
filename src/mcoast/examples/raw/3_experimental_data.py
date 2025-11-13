@@ -25,6 +25,8 @@ from mcoast.utils import Plotter
 # %% [markdown]
 # ### Load experimental fluorescence trace
 
+# %%
+# Load experimental trace from mCOAST package
 data_path = resources.files("mcoast").joinpath("data", "experimental_data_example.csv")
 data = np.loadtxt(data_path, delimiter=",")
 time_points = data[:, 0]
