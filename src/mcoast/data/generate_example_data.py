@@ -49,7 +49,6 @@ def main():
         "experimental_data_example.csv",
         data,
         delimiter=",",
-        header="Time(s),Fluorescence(counts)",
         comments="",
         fmt="%.6f",
     )

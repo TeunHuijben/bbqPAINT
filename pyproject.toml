@@ -17,6 +17,7 @@ dependencies = [
     "scipy>=1.7.0",
     "matplotlib>=3.3.0",
     "scikit-learn>=1.0.0",
+    "jupytext>=1.14.0",
 ]
 [tool.hatch.version]
 path = "src/mcoast/__init__.py"

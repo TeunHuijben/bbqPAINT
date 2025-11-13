@@ -11,7 +11,7 @@ A Python package for counting the number of blinking molecules from fluorescence
 
 ## Installation
 
-### From Source (Recommended for Development)
+#### From Source
 
 ```bash
 git clone https://github.com/TeunHuijben/mcoast.git
@@ -19,7 +19,7 @@ cd mcoast
 pip install -e ".[dev]"  # Install with development dependencies
 ```
 
-### From PyPI (Coming Soon)
+#### From PyPI (Coming Soon)
 
 ```bash
 pip install mcoast
@@ -27,7 +27,7 @@ pip install mcoast
 
 ## Quick Start
 
-### Basic Simulation
+#### Basic Simulation
 
 ```python
 from mcoast.simulation import SimulationParameters, TraceGenerator
@@ -47,7 +47,7 @@ generator = TraceGenerator(sim_params)
 time_points, intensity = generator.generate_trace()
 ```
 
-### Parameter Estimation
+#### Parameter Estimation
 
 ```python
 from mcoast.analysis import AnalysisParameters, ParameterEstimator
@@ -74,35 +74,21 @@ print(f"Single molecule intensity: {results.single_molecule_intensity_fit:.2f}")
 
 ## Examples
 
-The package includes several example scripts demonstrating different use cases:
+Three example notebooks demonstrating different use cases are available in `src/mcoast/examples/`. Either run the notebook in Google Colab by using the "Open in Colab" button, or run them locally.
 
-- **`1_basic_simulation.py`**: Generate synthetic fluorescence traces
-- **`2_simulated_data.py`**: Complete analysis pipeline from simulated trace
-- **`3_experimental_data.py`**: Complete analysis pipeline from experimental trace
+- **`1_basic_simulation.ipynb`**: Generate synthetic fluorescence traces <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/examples/colab/1_basic_simulation.ipynb" target="_blank">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
 
-Run examples:
+- **`2_simulated_data.ipynb`**: Complete mCOAST pipeline simulated data <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/examples/colab/2_simulated_data.ipynb" target="_blank">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
 
-```bash
-python src/mcoast/examples/1_basic_simulation.py
-python src/mcoast/examples/2_simulated_data.py
-python src/mcoast/examples/3_experimental_data.py
-```
+- **`3_experimental_data.ipynb`**: Complete mCOAST pipeline on experimental data <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/examples/colab/3_experimental_data.ipynb" target="_blank">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
 
-## Testing
-
-```bash
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov=src/mcoast --cov-report=html
-
-# Run specific test file
-pytest tests/test_parameter_estimation.py
-
-# Run pre-commit hooks
-pre-commit run --all-files
-```
+**For developers**: Source files are in `src/mcoast/examples/raw/` (jupytext format). Edit those files, and a GitHub Action will automatically generate the `.ipynb` notebooks.
 
 ## What mCOAST Extracts
 
@@ -113,7 +99,7 @@ From a single fluorescence intensity trace, mCOAST estimates:
 3. **N**: Number of independently blinking emitters
 4. **I_single**: Single-molecule brightness
 
-### How It Works
+#### How It Works
 
 1. **Power Spectrum Analysis** (2nd order):
    - Extracts k_sum = k_on + k_off
@@ -128,6 +114,26 @@ From a single fluorescence intensity trace, mCOAST estimates:
    - Combines power spectrum and bispectrum results
    - Solves analytical equations to extract all four parameters
    - Provides uncertainty estimates from covariance matrices
+
+
+## Testing and Development
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"  # Install with development dependencies
+
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src/mcoast --cov-report=html
+
+# Run specific test file
+pytest tests/test_parameter_estimation.py
+
+# Run pre-commit hooks
+pre-commit run --all-files
+```
 
 ## Package Structure
 
@@ -147,9 +153,9 @@ mcoast/
 │   ├── preprocessing.py    # TracePreprocessor (detrending, smoothing, outlier removal)
 │   └── visualization.py    # Plotter for traces and spectra
 └── examples/                # Example scripts
-    ├── 1_basic_simulation.py
-    ├── 2_simulated_data.py
-    └── 3_experimental_data.py
+    ├── 1_basic_simulation.ipynb
+    ├── 2_simulated_data.ipynb
+    └── 3_experimental_data.ipynb
 ```
 
 ## Citation
