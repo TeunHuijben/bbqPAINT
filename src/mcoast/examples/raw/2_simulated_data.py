@@ -12,7 +12,7 @@ to estimate molecular parameters from simulated data.
 # !pip install git+https://github.com/TeunHuijben/mcoast.git
 
 # %% [markdown]
-# ## Load dependencies
+# ### Load dependencies
 
 # %%
 import matplotlib.pyplot as plt
@@ -22,7 +22,7 @@ from mcoast.simulation import SimulationParameters, TraceGenerator
 from mcoast.utils import Plotter
 
 # %% [markdown]
-# ## Simulate the fluorescence intensity trace
+# ### Simulate the fluorescence intensity trace
 
 # %%
 # Set up simulation parameters
@@ -46,7 +46,7 @@ print(f"✓ Generated {len(intensity)} data points")
 print(f"✓ Average intensity: {intensity.mean():.2f}")
 
 # %% [markdown]
-# ## Perform mCOAST analysis
+# ### Perform mCOAST analysis
 
 # %%
 # Configure analysis parameters
@@ -68,7 +68,7 @@ print("✓ Analysis completed\n")
 results.summary(true_params=sim_params)
 
 # %% [markdown]
-# ## Visualize results
+# ### Visualize results
 
 # %%
 # Generate 6-panel figure showing all analysis results

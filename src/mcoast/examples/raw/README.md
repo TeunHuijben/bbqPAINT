@@ -30,13 +30,13 @@ These files use jupytext format with `# %%` cell markers:
 
 Test the jupytext conversion locally:
 ```bash
-# Install jupytext
-pip install jupytext
+# Install the development optional depencencies of mCOAST
+pip install ".[dev]"
 
-# Convert to notebook
-jupytext --to notebook 1_basic_simulation.py -o 1_basic_simulation.ipynb
+# Convert all examples to notebooks
+python build_notebooks.py
 
-# Run as Python script
+# Run example as a Python script
 python 1_basic_simulation.py
 ```
 

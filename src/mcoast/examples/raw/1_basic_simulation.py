@@ -13,7 +13,7 @@ We'll simulate fluorescence from blinking molecules and visualize the results.
 # !pip install git+https://github.com/TeunHuijben/mcoast.git
 
 # %% [markdown]
-# ## Load dependencies
+# ### Load dependencies
 
 # %%
 import matplotlib.pyplot as plt
@@ -23,7 +23,7 @@ from mcoast.simulation import SimulationParameters, TraceGenerator
 from mcoast.utils import Plotter
 
 # %% [markdown]
-# ## Set up simulation parameters
+# ### Set up simulation parameters
 
 # %%
 # Configure the properties of our simulated molecules
@@ -40,7 +40,7 @@ sim_params.sigma_noise = 0.2  # Amount of background noise
 sim_params.summary()
 
 # %% [markdown]
-# ## Simulate the fluorescence intensity trace
+# ### Simulate the fluorescence intensity trace
 
 # %%
 # Create a trace generator and simulate the blinking
@@ -61,7 +61,7 @@ print(f"\nTheoretical average intensity: {expected_intensity:.1f}")
 print(f"Difference from theory: {abs(np.mean(intensity) - expected_intensity):.1f}")
 
 # %% [markdown]
-# ## Plot the trace
+# ### Plot the trace
 
 # %%
 # Visualize the simulated trace to see molecules blinking on and off

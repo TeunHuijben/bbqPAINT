@@ -5,11 +5,6 @@
 This notebook demonstrates comprehensive analysis and visualization of fluorescence traces
 to estimate molecular parameters from experimental data.
 
-We'll:
-1. Load experimental fluorescence trace from a CSV file
-2. Analyze it using power spectrum and bispectrum methods
-3. Extract molecular parameters (k_on, k_off, N, I_single)
-4. Visualize the results in a comprehensive 6-panel figure
 """
 
 # %% tags=["colab"]
@@ -17,7 +12,7 @@ We'll:
 # !pip install git+https://github.com/TeunHuijben/mcoast.git
 
 # %% [markdown]
-# ## Load dependencies
+# ### Load dependencies
 
 # %%
 import os
@@ -29,7 +24,7 @@ from mcoast.analysis import AnalysisParameters, ParameterEstimator
 from mcoast.utils import Plotter
 
 # %% [markdown]
-# ## Load experimental fluorescence trace
+# ### Load experimental fluorescence trace
 
 # %%
 # Load data from CSV file (time, intensity columns)
@@ -48,7 +43,7 @@ print(f"✓ Sampling time (dt): {time_points[1] - time_points[0]:.3f} seconds")
 print(f"✓ Average intensity: {intensity.mean():.2f}")
 
 # %% [markdown]
-# ## Perform mCOAST analysis
+# ### Perform mCOAST analysis
 
 # %%
 # Configure analysis parameters
@@ -70,7 +65,7 @@ print("✓ Analysis completed\n")
 results.summary()
 
 # %% [markdown]
-# ## Visualize results
+# ### Visualize results
 
 # %%
 # Generate 6-panel figure showing all analysis results

@@ -26,7 +26,7 @@ path = "src/mcoast/__init__.py"
 packages = ["src/mcoast"]
 
 [project.optional-dependencies]
-dev = ["pytest>=6.0", "pre-commit>=3.0.0", "pytest-cov"]
+dev = ["pytest>=6.0", "pre-commit>=3.0.0", "pytest-cov", "nbconvert>=6.0.0"]
 all = ["mcoast[dev]"]
 
 [project.urls]
