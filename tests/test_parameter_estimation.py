@@ -87,7 +87,6 @@ class TestAnalysisParameters:
         assert params.tolerance == 1e-6
         assert params.fit_power_spectrum is True
         assert params.fit_bispectrum is True
-        assert params.fit_k_sum_free is False
         assert params.calculate_uncertainties is True
 
         # Check nested objects
@@ -102,13 +101,11 @@ class TestAnalysisParameters:
         params.measurement_time = 1000.0
         params.n_chops = 3
         params.max_iterations = 500
-        params.fit_k_sum_free = True
 
         assert params.dt == 0.1
         assert params.measurement_time == 1000.0
         assert params.n_chops == 3
         assert params.max_iterations == 500
-        assert params.fit_k_sum_free is True
 
     def test_validation_valid_parameters(self):
         """Test validation with valid parameters"""
@@ -451,15 +448,16 @@ class TestParameterEstimator:
             assert results is not None
             assert results.power_spectrum is not None
 
-    def test_k_sum_free_fitting(self, sample_trace, analysis_params):
-        """Test bispectrum fitting with k_sum as free parameter"""
-        analysis_params.fit_k_sum_free = True
+    def test_k_sum_bs_always_fitted(self, sample_trace, analysis_params):
+        """Test that k_sum is always fitted in bispectrum analysis"""
         estimator = ParameterEstimator(sample_trace, analysis_params)
 
         results = estimator.estimate_parameters()
 
-        # Should complete without error
+        # k_sum_bs should always be present in results
         assert results is not None
+        assert results.k_sum_bs is not None
+        assert results.k_sum_bs > 0  # Should be positive
 
     def test_short_trace_handling(self, analysis_params):
         """Test handling of very short traces"""

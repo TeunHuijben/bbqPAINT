@@ -267,40 +267,17 @@ class TestBispectrumFitting:
             data["chop_length"],
             initial_guess,
             max_iterations=1000,
-            fit_k_sum_free=False,
         )
 
-        # Check that we get reasonable results
-        assert len(fitted_params) == 2  # c3, c3_offset (k_sum not free)
+        # Should always return 3 parameters: c3, c3_offset, k_sum
+        assert len(fitted_params) == 3
         assert np.all(np.isfinite(fitted_params))
 
         # Check parameters are within reasonable range
         assert fitted_params[0] > 0  # c3 should be positive
+        assert fitted_params[2] > 0  # k_sum should be positive
         assert abs(fitted_params[0] - data["true_params"][0]) < 30  # c3
         assert abs(fitted_params[1] - data["true_params"][1]) < 5  # c3_offset
-
-    def test_bispectrum_wls_with_k_sum_free(
-        self, bispectrum_analyzer, sample_bispectrum_data
-    ):
-        """Test bispectrum fitting with k_sum as free parameter"""
-        data = sample_bispectrum_data
-
-        initial_guess = [40.0, 1.0, 0.8]  # c3, c3_offset, k_sum
-
-        fitted_params, _ = bispectrum_analyzer.fit_bispectrum_wls(
-            data["bs_data"],
-            data["k1_data"],
-            data["k2_data"],
-            data["weights"],
-            data["chop_length"],
-            initial_guess,
-            fit_k_sum_free=True,
-        )
-
-        # Should now return 3 parameters
-        assert len(fitted_params) == 3
-        assert fitted_params[0] > 0  # c3
-        assert fitted_params[2] > 0  # k_sum
 
     def test_theoretical_bispectrum_calculation(self, bispectrum_analyzer):
         """Test theoretical bispectrum calculation"""

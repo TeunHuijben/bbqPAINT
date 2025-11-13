@@ -53,7 +53,6 @@ class AnalysisParameters:
         # Analysis options
         self.fit_power_spectrum: bool = True
         self.fit_bispectrum: bool = True
-        self.fit_k_sum_free: bool = False  # Whether to fit kSum in bispectrum
         self.calculate_uncertainties: bool = True
 
     def validate(self) -> None:
@@ -80,6 +79,7 @@ class AnalysisResults:
         self.pk_bg_fit: Optional[float] = None
         self.c3_fit: Optional[float] = None
         self.c3_offset_fit: Optional[float] = None
+        self.k_sum_bs: Optional[float] = None  # k_sum from bispectrum fit
 
         # Derived parameters
         self.n_emitters_fit: Optional[float] = None
@@ -93,6 +93,7 @@ class AnalysisResults:
         self.pk_bg_std: Optional[float] = None
         self.c3_std: Optional[float] = None
         self.c3_offset_std: Optional[float] = None
+        self.k_sum_bs_std: Optional[float] = None  # k_sum_bs uncertainty
 
         # Raw data
         self.power_spectrum: Optional[np.ndarray] = None
