@@ -18,7 +18,7 @@ from pathlib import Path
 
 def uncomment_colab_cells(input_path, output_path):
     """Uncomment pip install commands in colab-tagged cells."""
-    with open(input_path, "r") as f:
+    with open(input_path) as f:
         nb = json.load(f)
 
     for cell in nb["cells"]:
@@ -55,12 +55,18 @@ def main():
         print(f"Converting {filename}...")
 
         tmp_notebook = tmp_dir / f"{filename}.ipynb"
-        normal_notebook = examples_dir / f"{filename}.ipynb"
         colab_notebook = colab_dir / f"{filename}.ipynb"
 
         # Convert to full notebook
         subprocess.run(
-            ["jupytext", "--to", "notebook", "--output", str(tmp_notebook), str(raw_file)],
+            [
+                "jupytext",
+                "--to",
+                "notebook",
+                "--output",
+                str(tmp_notebook),
+                str(raw_file),
+            ],
             check=True,
             capture_output=True,
         )
@@ -90,9 +96,9 @@ def main():
         # Colab version (keep all cells, uncomment pip install)
         uncomment_colab_cells(tmp_notebook, colab_notebook)
 
-        print(f"  ✓ Created normal and Colab versions")
+        print("  ✓ Created normal and Colab versions")
 
-    print(f"\n✓ All notebooks built successfully")
+    print("\n✓ All notebooks built successfully")
     print(f"  Normal: {examples_dir}/*.ipynb")
     print(f"  Colab:  {colab_dir}/*.ipynb")
 
