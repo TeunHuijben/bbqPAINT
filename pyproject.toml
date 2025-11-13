@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "mcoast"
 description = "Molecular counting from a single intensity trace"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.8,<3.13"
 license = { text = "BSD 3-Clause License" }
 authors = [
     { email = "teunhuijben@hotmail.com", name = "Teun Huijben" },

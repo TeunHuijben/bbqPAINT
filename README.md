@@ -13,6 +13,8 @@ A Python package for counting the number of blinking molecules from fluorescence
 #### From Source
 
 ```bash
+conda create -n mcoast python=3.11
+conda activate mcoast
 git clone https://github.com/TeunHuijben/mcoast.git
 cd mcoast
 pip install -e ".[dev]"  # Install with development dependencies
