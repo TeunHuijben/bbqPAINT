@@ -34,12 +34,14 @@ sim_params.measurement_time = 3600  # Total time (seconds)
 sim_params.single_molecule_intensity = 1.0  # Brightness per molecule
 sim_params.sigma_noise = 0.2  # Background noise
 
+# Print simulation parameters
+sim_params.summary()
+
 # Generate the trace
 generator = TraceGenerator(sim_params)
 time_points, intensity = generator.generate_trace()
 
 print(f"✓ Generated {len(intensity)} data points")
-print(f"✓ Duration: {sim_params.measurement_time} seconds")
 print(f"✓ Average intensity: {intensity.mean():.2f}")
 
 # %% Perform spectral analysis
@@ -56,26 +58,10 @@ analysis_params.fit_k_sum_free = True  # Refine k_sum in bispectrum fit
 estimator = ParameterEstimator(intensity, analysis_params)
 results = estimator.estimate_parameters()
 
-print("✓ Analysis completed")
+print("✓ Analysis completed\n")
 
-# Print fitted parameters
-print("\n=== Estimation Results ===")
-print("Power Spectrum Fit:")
-print(
-    f"  k_sum = {results.k_sum_fit:.3f} Hz (true: {sim_params.k_on + sim_params.k_off:.3f})"
-)
-print(f"  s2 = {results.s2_fit:.3f}")
-print(f"  pk_bg = {results.pk_bg_fit:.3f}")
-print("\nBispectrum Fit:")
-print(f"  C3 = {results.c3_fit:.3f}")
-print(f"  C3_offset = {results.c3_offset_fit:.3f}")
-print("\nDerived Parameters:")
-print(f"  N = {results.n_emitters_fit:.2f} (true: {sim_params.n_emitters})")
-print(f"  k_on = {results.k_on_fit:.3f} Hz (true: {sim_params.k_on})")
-print(f"  k_off = {results.k_off_fit:.3f} Hz (true: {sim_params.k_off})")
-print(
-    f"  I_single = {results.single_molecule_intensity_fit:.2f} (true: {sim_params.single_molecule_intensity})"
-)
+# Print fitted parameters with comparison to true values
+results.summary(true_params=sim_params)
 
 # %% Create comprehensive visualization
 # Generate 6-panel figure showing all analysis results

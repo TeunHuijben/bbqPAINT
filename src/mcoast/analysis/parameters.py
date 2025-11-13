@@ -128,3 +128,65 @@ class AnalysisResults:
             print(f"Variance (s2): {self.s2_fit:.2f}")
         if self.c3_fit is not None:
             print(f"Third cumulant (C3): {self.c3_fit:.2f}")
+
+    def summary(self, true_params=None) -> None:
+        """
+        Print a comprehensive summary of the analysis results.
+
+        Parameters
+        ----------
+        true_params : SimulationParameters, optional
+            If provided, will show comparison with true values
+        """
+        print("=== Analysis Results ===")
+
+        # Power Spectrum Fit
+        print("Power Spectrum Fit:")
+        if self.k_sum_fit is not None:
+            true_str = ""
+            if true_params is not None:
+                true_k_sum = true_params.k_on + true_params.k_off
+                true_str = f" (true: {true_k_sum:.3f})"
+            print(f"  k_sum = {self.k_sum_fit:.3f} Hz{true_str}")
+
+        if self.s2_fit is not None:
+            print(f"  s2 = {self.s2_fit:.3f}")
+
+        if self.pk_bg_fit is not None:
+            print(f"  pk_bg = {self.pk_bg_fit:.3f}")
+
+        # Bispectrum Fit
+        print("\nBispectrum Fit:")
+        if self.c3_fit is not None:
+            print(f"  C3 = {self.c3_fit:.3f}")
+
+        if self.c3_offset_fit is not None:
+            print(f"  C3_offset = {self.c3_offset_fit:.3f}")
+
+        # Derived Parameters
+        print("\nDerived Parameters:")
+        if self.n_emitters_fit is not None:
+            true_str = ""
+            if true_params is not None:
+                true_str = f" (true: {true_params.n_emitters})"
+            print(f"  N = {self.n_emitters_fit:.2f}{true_str}")
+
+        if self.k_on_fit is not None:
+            true_str = ""
+            if true_params is not None:
+                true_str = f" (true: {true_params.k_on:.3f})"
+            print(f"  k_on = {self.k_on_fit:.3f} Hz{true_str}")
+
+        if self.k_off_fit is not None:
+            true_str = ""
+            if true_params is not None:
+                true_str = f" (true: {true_params.k_off:.3f})"
+            print(f"  k_off = {self.k_off_fit:.3f} Hz{true_str}")
+
+        if self.single_molecule_intensity_fit is not None:
+            true_str = ""
+            if true_params is not None:
+                true_str = f" (true: {true_params.single_molecule_intensity:.2f})"
+            print(f"  I_single = {self.single_molecule_intensity_fit:.2f}{true_str}")
+
+        print()

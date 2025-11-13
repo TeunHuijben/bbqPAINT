@@ -45,6 +45,7 @@ jobs:
                   cell['source'] = [line.replace('# !pip', '!pip') for line in cell['source']]
           with open(sys.argv[2], 'w') as f:
               json.dump(nb, f, indent=1)
+              f.write('\n')
           PYEOF
 
           for file in src/mcoast/examples/raw/*.py; do
@@ -64,5 +65,5 @@ jobs:
         uses: EndBug/add-and-commit@v9
         with:
           add: 'src/mcoast/examples/*.ipynb src/mcoast/examples/colab/*.ipynb'
-          message: '🤖 Auto-build Jupyter notebooks from raw examples'
+          message: '🤖 Auto-build Jupyter notebooks'
           default_author: github_actions

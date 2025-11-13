@@ -34,3 +34,16 @@ class SimulationParameters:
             raise ValueError("dt must be positive")
         if self.measurement_time <= 0:
             raise ValueError("measurement_time must be positive")
+
+    def summary(self) -> None:
+        """Print a summary of the simulation parameters"""
+        print("=== Simulation Parameters ===")
+        print(f"  N (emitters):     {self.n_emitters}")
+        print(f"  k_on:             {self.k_on:.3f} Hz")
+        print(f"  k_off:            {self.k_off:.3f} Hz")
+        print(f"  k_sum:            {self.k_on + self.k_off:.3f} Hz")
+        print(f"  I_single:         {self.single_molecule_intensity:.2f}")
+        print(f"  dt:               {self.dt:.3f} s")
+        print(f"  Measurement time: {self.measurement_time:.1f} s")
+        print(f"  Noise (sigma):    {self.sigma_noise:.3f}")
+        print()
