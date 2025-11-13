@@ -14,6 +14,7 @@ to estimate molecular parameters from experimental data.
 # %% [markdown]
 # ### Load dependencies
 
+# %%
 from importlib import resources
 
 import matplotlib.pyplot as plt
