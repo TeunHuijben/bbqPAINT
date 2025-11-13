@@ -30,12 +30,8 @@ sim_params.measurement_time = 5000  # Total measurement time (seconds)
 sim_params.single_molecule_intensity = 1.0  # Brightness of one molecule
 sim_params.sigma_noise = 0.2  # Amount of background noise
 
-print("Simulation parameters:")
-print(f"  • Number of molecules: {sim_params.n_emitters}")
-print(f"  • ON rate: {sim_params.k_on} per second")
-print(f"  • OFF rate: {sim_params.k_off} per second")
-print(f"  • Measurement time: {sim_params.measurement_time} seconds")
-print(f"  • Single molecule brightness: {sim_params.single_molecule_intensity}")
+# Print simulation parameters
+sim_params.summary()
 
 # %% Generate the fluorescence trace
 # Create a trace generator and simulate the blinking

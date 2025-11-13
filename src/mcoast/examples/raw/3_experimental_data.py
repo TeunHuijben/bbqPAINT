@@ -55,22 +55,10 @@ analysis_params.fit_k_sum_free = True  # Refine k_sum in bispectrum fit
 estimator = ParameterEstimator(intensity, analysis_params)
 results = estimator.estimate_parameters()
 
-print("✓ Analysis completed")
+print("✓ Analysis completed\n")
 
 # Print fitted parameters
-print("\n=== Estimation Results ===")
-print("Power Spectrum Fit:")
-print(f"  k_sum = {results.k_sum_fit:.3f} Hz")
-print(f"  s2 = {results.s2_fit:.3f}")
-print(f"  pk_bg = {results.pk_bg_fit:.3f}")
-print("\nBispectrum Fit:")
-print(f"  C3 = {results.c3_fit:.3f}")
-print(f"  C3_offset = {results.c3_offset_fit:.3f}")
-print("\nDerived Parameters:")
-print(f"  N = {results.n_emitters_fit:.2f}")
-print(f"  k_on = {results.k_on_fit:.3f} Hz")
-print(f"  k_off = {results.k_off_fit:.3f} Hz")
-print(f"  I_single = {results.single_molecule_intensity_fit:.2f}")
+results.summary()
 
 # %% Create comprehensive visualization
 # Generate 6-panel figure showing all analysis results
