@@ -12,14 +12,20 @@ We'll simulate fluorescence from blinking molecules and visualize the results.
 # Install mcoast package (for Google Colab)
 # !pip install git+https://github.com/TeunHuijben/mcoast.git
 
-# %% Imports
+# %% [markdown]
+# ## Load dependencies
+
+# %%
 import matplotlib.pyplot as plt
 import numpy as np
 
 from mcoast.simulation import SimulationParameters, TraceGenerator
 from mcoast.utils import Plotter
 
-# %% Set up simulation parameters
+# %% [markdown]
+# ## Set up simulation parameters
+
+# %%
 # Configure the properties of our simulated molecules
 sim_params = SimulationParameters()
 sim_params.k_on = 0.15  # How fast molecules turn ON (per second)
@@ -33,7 +39,10 @@ sim_params.sigma_noise = 0.2  # Amount of background noise
 # Print simulation parameters
 sim_params.summary()
 
-# %% Generate the fluorescence trace
+# %% [markdown]
+# ## Simulate the fluorescence intensity trace
+
+# %%
 # Create a trace generator and simulate the blinking
 generator = TraceGenerator(sim_params)
 time_points, intensity = generator.generate_trace()
@@ -51,8 +60,12 @@ expected_intensity = (
 print(f"\nTheoretical average intensity: {expected_intensity:.1f}")
 print(f"Difference from theory: {abs(np.mean(intensity) - expected_intensity):.1f}")
 
-# %% Plot the fluorescence trace
+# %% [markdown]
+# ## Plot the trace
+
+# %%
 # Visualize the simulated trace to see molecules blinking on and off
 plotter = Plotter()
 plotter.plot_trace(intensity, sim_params.dt, title="Simulated Fluorescence Trace")
+# plt.xlim(0,50) #uncomment to see zoom-in of trace
 plt.show()

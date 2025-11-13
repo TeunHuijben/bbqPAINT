@@ -16,7 +16,10 @@ We'll:
 # Install mcoast package (for Google Colab)
 # !pip install git+https://github.com/TeunHuijben/mcoast.git
 
-# %% Imports
+# %% [markdown]
+# ## Load dependencies
+
+# %%
 import os
 
 import matplotlib.pyplot as plt
@@ -25,7 +28,10 @@ import numpy as np
 from mcoast.analysis import AnalysisParameters, ParameterEstimator
 from mcoast.utils import Plotter
 
-# %% Load experimental fluorescence trace
+# %% [markdown]
+# ## Load experimental fluorescence trace
+
+# %%
 # Load data from CSV file (time, intensity columns)
 current_dir = os.path.dirname(__file__)
 data_dir = os.path.join(current_dir, "..", "data")
@@ -41,7 +47,10 @@ print(f"✓ Duration: {time_points[-1] - time_points[0]:.0f} seconds")
 print(f"✓ Sampling time (dt): {time_points[1] - time_points[0]:.3f} seconds")
 print(f"✓ Average intensity: {intensity.mean():.2f}")
 
-# %% Perform spectral analysis
+# %% [markdown]
+# ## Perform mCOAST analysis
+
+# %%
 # Configure analysis parameters
 analysis_params = AnalysisParameters()
 analysis_params.dt = time_points[1] - time_points[0]  # Calculate from data
@@ -60,7 +69,10 @@ print("✓ Analysis completed\n")
 # Print fitted parameters
 results.summary()
 
-# %% Create comprehensive visualization
+# %% [markdown]
+# ## Visualize results
+
+# %%
 # Generate 6-panel figure showing all analysis results
 plotter = Plotter()
 plotter.plot_comprehensive_analysis(intensity, time_points, results, analysis_params)

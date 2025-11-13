@@ -5,25 +5,26 @@
 This notebook demonstrates comprehensive analysis and visualization of fluorescence traces
 to estimate molecular parameters from simulated data.
 
-We'll:
-1. Generate a synthetic fluorescence trace
-2. Analyze it using power spectrum and bispectrum methods
-3. Extract molecular parameters (k_on, k_off, N, I_single)
-4. Visualize the results in a comprehensive 6-panel figure
 """
 
 # %% tags=["colab"]
 # Install mcoast package (for Google Colab)
 # !pip install git+https://github.com/TeunHuijben/mcoast.git
 
-# %% Imports
+# %% [markdown]
+# ## Load dependencies
+
+# %%
 import matplotlib.pyplot as plt
 
 from mcoast.analysis import AnalysisParameters, ParameterEstimator
 from mcoast.simulation import SimulationParameters, TraceGenerator
 from mcoast.utils import Plotter
 
-# %% Generate synthetic fluorescence trace
+# %% [markdown]
+# ## Simulate the fluorescence intensity trace
+
+# %%
 # Set up simulation parameters
 sim_params = SimulationParameters()
 sim_params.k_on = 0.15  # ON rate (Hz)
@@ -44,7 +45,10 @@ time_points, intensity = generator.generate_trace()
 print(f"✓ Generated {len(intensity)} data points")
 print(f"✓ Average intensity: {intensity.mean():.2f}")
 
-# %% Perform spectral analysis
+# %% [markdown]
+# ## Perform mCOAST analysis
+
+# %%
 # Configure analysis parameters
 analysis_params = AnalysisParameters()
 analysis_params.dt = sim_params.dt
@@ -63,7 +67,10 @@ print("✓ Analysis completed\n")
 # Print fitted parameters with comparison to true values
 results.summary(true_params=sim_params)
 
-# %% Create comprehensive visualization
+# %% [markdown]
+# ## Visualize results
+
+# %%
 # Generate 6-panel figure showing all analysis results
 plotter = Plotter()
 plotter.plot_comprehensive_analysis(
