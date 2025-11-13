@@ -74,14 +74,7 @@ print(f"Single molecule intensity: {results.single_molecule_intensity_fit:.2f}")
 
 ## Examples
 
-Three example notebooks demonstrating different use cases are available in `src/mcoast/examples/`:
-
-- Basic trace simulation:
-
-- mCOAST on simulated trace:
-- mCOAST on experimental trace:
-
-
+Three example notebooks demonstrating different use cases are available in `src/mcoast/examples/`. Either run the notebook in Google Colab by using the "Open in Colab" button, or run them locally.
 
 - **`1_basic_simulation.ipynb`**: Generate synthetic fluorescence traces <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/examples/colab/1_basic_simulation.ipynb" target="_blank">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
@@ -94,8 +87,6 @@ Three example notebooks demonstrating different use cases are available in `src/
 - **`3_experimental_data.ipynb`**: Complete mCOAST pipeline on experimental data <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/examples/colab/3_experimental_data.ipynb" target="_blank">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
-
-Download and open in Jupyter Notebook, Jupyter Lab, VS Code, or Google Colab. Each notebook contains clear explanations and organized code cells suitable for beginners.
 
 **For developers**: Source files are in `src/mcoast/examples/raw/` (jupytext format). Edit those files, and a GitHub Action will automatically generate the `.ipynb` notebooks.
 
@@ -162,9 +153,9 @@ mcoast/
 │   ├── preprocessing.py    # TracePreprocessor (detrending, smoothing, outlier removal)
 │   └── visualization.py    # Plotter for traces and spectra
 └── examples/                # Example scripts
-    ├── 1_basic_simulation.py
-    ├── 2_simulated_data.py
-    └── 3_experimental_data.py
+    ├── 1_basic_simulation.ipynb
+    ├── 2_simulated_data.ipynb
+    └── 3_experimental_data.ipynb
 ```
 
 ## Citation
