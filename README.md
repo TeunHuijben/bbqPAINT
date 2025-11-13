@@ -1,7 +1,7 @@
 # mCOAST
 
 [![License](https://img.shields.io/github/license/TeunHuijben/mcoast.svg?color=green)](https://github.com/TeunHuijben/mcoast/raw/main/LICENSE)
-[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://python.org)
+[![Python Version](https://img.shields.io/badge/python-3.8--3.12-blue)](https://python.org)
 [![CI](https://github.com/TeunHuijben/mcoast/actions/workflows/ci.yml/badge.svg)](https://github.com/TeunHuijben/mcoast/actions/workflows/ci.yml)
 
 **M**olecular **CO**unting from **A** **S**ingle intensity **T**race
