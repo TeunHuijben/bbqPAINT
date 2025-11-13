@@ -14,8 +14,7 @@ to estimate molecular parameters from experimental data.
 # %% [markdown]
 # ### Load dependencies
 
-# %%
-import os
+from importlib import resources
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,14 +25,8 @@ from mcoast.utils import Plotter
 # %% [markdown]
 # ### Load experimental fluorescence trace
 
-# %%
-# Load data from CSV file (time, intensity columns)
-current_dir = os.path.dirname(__file__)
-data_dir = os.path.join(current_dir, "..", "data")
-filepath = os.path.join(data_dir, "experimental_data_example.csv")
-
-# Load the data
-data = np.loadtxt(filepath, delimiter=",")
+data_path = resources.files("mcoast").joinpath("data", "experimental_data_example.csv")
+data = np.loadtxt(data_path, delimiter=",")
 time_points = data[:, 0]
 intensity = data[:, 1]
 
