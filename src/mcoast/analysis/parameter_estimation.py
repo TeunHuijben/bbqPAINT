@@ -69,6 +69,8 @@ class ParameterEstimator:
             self.results.c3_offset_fit = bs_params["c3_offset"]
             self.results.c3_std = bs_params["c3_std"]
             self.results.c3_offset_std = bs_params["c3_offset_std"]
+            self.results.k_sum_bs = bs_params["k_sum_bs"]
+            self.results.k_sum_bs_std = bs_params["k_sum_bs_std"]
 
         # Calculate derived molecular parameters
         self.calculate_molecular_parameters()
@@ -160,10 +162,8 @@ class ParameterEstimator:
         initial_guess = [
             c3_initial,
             self.params.initial_guess.c3_offset,
+            self.results.k_sum_fit,
         ]
-
-        if self.params.fit_k_sum_free:
-            initial_guess.append(self.results.k_sum_fit)
 
         # Fit using weighted least squares (integrated in analyzer with PROPER theoretical model)
         fitted_params, cov_matrix = self.bispectrum_analyzer.fit_bispectrum_wls(
@@ -174,24 +174,21 @@ class ParameterEstimator:
             chopped_traces.shape[0],  # chop_length
             initial_guess,
             self.params.max_iterations,
-            self.params.fit_k_sum_free,
         )
 
         # Extract parameters and uncertainties
         results = {
             "c3": fitted_params[0],
             "c3_offset": fitted_params[1],
+            "k_sum_bs": fitted_params[2],
             "c3_std": np.sqrt(cov_matrix[0, 0]) if cov_matrix is not None else None,
             "c3_offset_std": (
                 np.sqrt(cov_matrix[1, 1]) if cov_matrix is not None else None
             ),
-        }
-
-        if self.params.fit_k_sum_free:
-            results["k_sum_bs"] = fitted_params[2]
-            results["k_sum_bs_std"] = (
+            "k_sum_bs_std": (
                 np.sqrt(cov_matrix[2, 2]) if cov_matrix is not None else None
-            )
+            ),
+        }
 
         return results
 

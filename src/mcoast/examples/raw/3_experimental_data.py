@@ -49,7 +49,6 @@ analysis_params.measurement_time = time_points[-1] - time_points[0]
 analysis_params.n_chops = 20  # Number of segments for bispectrum
 analysis_params.fit_power_spectrum = True  # Fit power spectrum
 analysis_params.fit_bispectrum = True  # Fit bispectrum
-analysis_params.fit_k_sum_free = True  # Refine k_sum in bispectrum fit
 
 # Run the analysis
 estimator = ParameterEstimator(intensity, analysis_params)

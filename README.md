@@ -60,7 +60,6 @@ analysis_params.measurement_time = 3600
 analysis_params.n_chops = 20                # Number of trace segments for bispectrum
 analysis_params.fit_power_spectrum = True   # Fit power spectrum (k_sum, s2, pk_bg)
 analysis_params.fit_bispectrum = True       # Fit bispectrum (C3)
-analysis_params.fit_k_sum_free = True       # Refine k_sum in bispectrum fit
 
 # Analyze the trace
 estimator = ParameterEstimator(intensity, analysis_params)

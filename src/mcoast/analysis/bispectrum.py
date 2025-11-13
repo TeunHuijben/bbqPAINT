@@ -326,7 +326,6 @@ class BispectrumAnalyzer:
         chop_length: int,
         initial_guess: List[float],
         max_iterations: int = 1000,
-        fit_k_sum_free: bool = False,
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
         """
         Weighted least squares fitting for bispectrum using the full theoretical model.
@@ -337,14 +336,13 @@ class BispectrumAnalyzer:
             k2_data: k2 frequency data (flattened)
             weights: Weights for fitting (inverse variance)
             chop_length: Length of each chop
-            initial_guess: Initial parameter guess [c3, c3_offset] or [c3, c3_offset, k_sum]
+            initial_guess: Initial parameter guess [c3, c3_offset, k_sum]
             max_iterations: Maximum number of iterations
-            fit_k_sum_free: Whether to fit k_sum as free parameter
 
         Returns:
             Tuple of (fitted_parameters, covariance_matrix)
-                fitted_parameters: [c3, c3_offset] or [c3, c3_offset, k_sum]
-                covariance_matrix: 2x2 or 3x3 covariance matrix (or None if calculation fails)
+                fitted_parameters: [c3, c3_offset, k_sum]
+                covariance_matrix: 3x3 covariance matrix (or None if calculation fails)
         """
 
         def bispectrum_model(k12_data, *params):
@@ -353,11 +351,7 @@ class BispectrumAnalyzer:
 
             This uses the complete theoretical bispectrum calculation, NOT a constant approximation.
             """
-            if fit_k_sum_free:
-                c3, c3_offset, k_sum = params
-            else:
-                c3, c3_offset = params
-                k_sum = initial_guess[2] if len(initial_guess) > 2 else 0.3
+            c3, c3_offset, k_sum = params
 
             # Extract k1 and k2
             k1_mat = k12_data[:, 0]
@@ -432,11 +426,8 @@ class BispectrumAnalyzer:
         # Prepare data
         k12_data = np.column_stack([k1_data, k2_data])
 
-        # Prepare initial guess based on fit_k_sum_free
-        if fit_k_sum_free:
-            p0 = initial_guess[:3]  # c3, c3_offset, k_sum
-        else:
-            p0 = initial_guess[:2]  # c3, c3_offset only
+        # Use all three parameters: c3, c3_offset, k_sum
+        p0 = initial_guess[:3]
 
         # Perform weighted least squares fitting
         try:
