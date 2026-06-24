@@ -8,8 +8,8 @@ bispectrum fitting (BispectrumAnalyzer) capabilities.
 import numpy as np
 import pytest
 
-from mcoast.analysis.bispectrum import BispectrumAnalyzer
-from mcoast.analysis.power_spectrum import PowerSpectrumAnalyzer
+from bbqpaint.analysis.bispectrum import BispectrumAnalyzer
+from bbqpaint.analysis.power_spectrum import PowerSpectrumAnalyzer
 
 
 class TestPowerSpectrumFitting:

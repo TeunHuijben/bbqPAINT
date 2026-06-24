@@ -1,29 +1,29 @@
-# mCOAST
+# bbqPAINT
 
-[![License](https://img.shields.io/github/license/TeunHuijben/mcoast.svg?color=green)](https://github.com/TeunHuijben/mcoast/raw/main/LICENSE)
+[![License](https://img.shields.io/github/license/TeunHuijben/bbqPAINT.svg?color=green)](https://github.com/TeunHuijben/bbqPAINT/raw/main/LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.8--3.12-blue)](https://python.org)
-[![CI](https://github.com/TeunHuijben/mcoast/actions/workflows/ci.yml/badge.svg)](https://github.com/TeunHuijben/mcoast/actions/workflows/ci.yml)
+[![CI](https://github.com/TeunHuijben/bbqPAINT/actions/workflows/ci.yml/badge.svg)](https://github.com/TeunHuijben/bbqPAINT/actions/workflows/ci.yml)
 
-**M**olecular **CO**unting from **A** **S**ingle intensity **T**race
+Counting blinking molecules from a single fluorescence intensity trace.
 
-A Python package for counting the number of blinking molecules from fluorescence intensity traces using power spectrum and bispectrum analysis. mCOAST extracts molecular parameters (k_on, k_off, number of emitters) from fluorescence intensity traces.
+A Python package for counting the number of blinking molecules from fluorescence intensity traces using power spectrum and bispectrum analysis. bbqPAINT extracts molecular parameters (k_on, k_off, number of emitters) from fluorescence intensity traces.
 
 ## Installation
 
 #### From Source
 
 ```bash
-conda create -n mcoast python=3.11
-conda activate mcoast
-git clone https://github.com/TeunHuijben/mcoast.git
-cd mcoast
+conda create -n bbqpaint python=3.12
+conda activate bbqpaint
+git clone https://github.com/TeunHuijben/bbqPAINT.git
+cd bbqPAINT
 pip install -e ".[dev]"  # Install with development dependencies
 ```
 
 #### From PyPI (Coming Soon)
 
 ```bash
-pip install mcoast
+pip install bbqpaint
 ```
 
 ## Quick Start
@@ -31,7 +31,7 @@ pip install mcoast
 #### Basic Simulation
 
 ```python
-from mcoast.simulation import SimulationParameters, TraceGenerator
+from bbqpaint.simulation import SimulationParameters, TraceGenerator
 
 # Create simulation parameters
 sim_params = SimulationParameters()
@@ -51,7 +51,7 @@ time_points, intensity = generator.generate_trace()
 #### Parameter Estimation
 
 ```python
-from mcoast.analysis import AnalysisParameters, ParameterEstimator
+from bbqpaint.analysis import AnalysisParameters, ParameterEstimator
 
 # Create analysis parameters
 analysis_params = AnalysisParameters()
@@ -74,25 +74,25 @@ print(f"Single molecule intensity: {results.single_molecule_intensity_fit:.2f}")
 
 ## Examples
 
-Three example notebooks demonstrating different use cases are available in `src/mcoast/examples/`. Either run the notebook in Google Colab by using the "Open in Colab" button, or run them locally.
+Three example notebooks demonstrating different use cases are available in `src/bbqpaint/examples/`. Either run the notebook in Google Colab by using the "Open in Colab" button, or run them locally.
 
-- **`1_basic_simulation.ipynb`**: Generate synthetic fluorescence traces <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/src/mcoast/examples/colab/1_basic_simulation.ipynb" target="_blank">
+- **`1_basic_simulation.ipynb`**: Generate synthetic fluorescence traces <a href="https://colab.research.google.com/github/TeunHuijben/bbqPAINT/blob/main/src/bbqpaint/examples/colab/1_basic_simulation.ipynb" target="_blank">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
-- **`2_simulated_data.ipynb`**: Complete mCOAST pipeline simulated data <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/src/mcoast/examples/colab/2_simulated_data.ipynb" target="_blank">
+- **`2_simulated_data.ipynb`**: Complete bbqPAINT pipeline simulated data <a href="https://colab.research.google.com/github/TeunHuijben/bbqPAINT/blob/main/src/bbqpaint/examples/colab/2_simulated_data.ipynb" target="_blank">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
-- **`3_experimental_data.ipynb`**: Complete mCOAST pipeline on experimental data <a href="https://colab.research.google.com/github/TeunHuijben/mCOAST/blob/main/src/mcoast/examples/colab/3_experimental_data.ipynb" target="_blank">
+- **`3_experimental_data.ipynb`**: Complete bbqPAINT pipeline on experimental data <a href="https://colab.research.google.com/github/TeunHuijben/bbqPAINT/blob/main/src/bbqpaint/examples/colab/3_experimental_data.ipynb" target="_blank">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
-**For developers**: Source files are in `src/mcoast/examples/raw/` (jupytext format). Edit those files, and a GitHub Action will automatically generate the `.ipynb` notebooks.
+**For developers**: Source files are in `src/bbqpaint/examples/raw/` (jupytext format). Edit those files, and a GitHub Action will automatically generate the `.ipynb` notebooks.
 
-## What mCOAST Extracts
+## What bbqPAINT Extracts
 
-From a single fluorescence intensity trace, mCOAST estimates:
+From a single fluorescence intensity trace, bbqPAINT estimates:
 
 1. **k_on**: Fluorophore on-rate (binding/activation rate)
 2. **k_off**: Fluorophore off-rate (unbinding/deactivation rate)
@@ -126,7 +126,7 @@ pip install -e ".[dev]"  # Install with development dependencies
 pytest
 
 # Run with coverage
-pytest --cov=src/mcoast --cov-report=html
+pytest --cov=src/bbqpaint --cov-report=html
 
 # Run specific test file
 pytest tests/test_parameter_estimation.py
@@ -138,7 +138,7 @@ pre-commit run --all-files
 ## Package Structure
 
 ```
-mcoast/
+bbqpaint/
 ├── simulation/              # Trace generation and simulation
 │   ├── parameters.py       # SimulationParameters dataclass
 │   ├── trace_generator.py  # TraceGenerator for blinking dynamics
@@ -160,7 +160,7 @@ mcoast/
 
 ## Citation
 
-If you use mCOAST in your research, please cite:
+If you use bbqPAINT in your research, please cite:
 
 ```bibtex
 ...

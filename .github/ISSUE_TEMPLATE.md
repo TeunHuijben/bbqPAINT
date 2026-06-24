@@ -1,4 +1,4 @@
-* mcoast version:
+* bbqpaint version:
 * Python version:
 * Operating System:
 
