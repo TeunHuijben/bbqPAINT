@@ -29,4 +29,13 @@ jobs:
           python -m pip install .[dev]
 
       - name: Test
-        run: pytest --color=yes
+        run: pytest --color=yes --cov=src/bbqpaint --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        if: matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

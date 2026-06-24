@@ -7,8 +7,9 @@
 [![License](https://img.shields.io/github/license/TeunHuijben/bbqPAINT.svg?color=green)](https://github.com/TeunHuijben/bbqPAINT/raw/main/LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.8--3.12-blue)](https://python.org)
 [![CI](https://github.com/TeunHuijben/bbqPAINT/actions/workflows/ci.yml/badge.svg)](https://github.com/TeunHuijben/bbqPAINT/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/TeunHuijben/bbqPAINT/graph/badge.svg)](https://codecov.io/gh/TeunHuijben/bbqPAINT)
 
-Counting blinking molecules from a single fluorescence intensity trace.
+Bispectrum-Based qPAINT: Counting blinking molecules from a single fluorescence intensity trace.
 
 A Python package for counting the number of blinking molecules from fluorescence intensity traces using power spectrum and bispectrum analysis. bbqPAINT extracts molecular parameters (k_on, k_off, number of emitters) from fluorescence intensity traces.
 

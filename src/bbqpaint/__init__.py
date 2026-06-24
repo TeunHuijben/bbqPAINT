@@ -10,7 +10,7 @@ A Python implementation for analyzing single-molecule fluorescence blinking dyna
 using power spectrum and bispectrum analysis.
 """
 
-"""Molecular counting from a single iintensity trace"""
+"""bispectrum-based qPAINT: Molecular counting from a single intensity trace"""
 
 __version__ = "0.0.1"
 __author__ = "Teun Huijben"
