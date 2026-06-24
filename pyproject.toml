@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mcoast"
+name = "bbqpaint"
 description = "Molecular counting from a single intensity trace"
 readme = "README.md"
 requires-python = ">=3.8,<3.13"
@@ -21,15 +21,15 @@ dependencies = [
     "ipykernel>=6.0.0",
 ]
 [tool.hatch.version]
-path = "src/mcoast/__init__.py"
+path = "src/bbqpaint/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mcoast"]
+packages = ["src/bbqpaint"]
 
 [project.optional-dependencies]
 dev = ["pytest>=6.0", "pre-commit>=3.0.0", "pytest-cov", "nbconvert>=6.0.0"]
-all = ["mcoast[dev]"]
+all = ["bbqpaint[dev]"]
 
 [project.urls]
-homepage = "https://github.com/TeunHuijben/mcoast"
-repository = "https://github.com/TeunHuijben/mcoast"
+homepage = "https://github.com/TeunHuijben/bbqPAINT"
+repository = "https://github.com/TeunHuijben/bbqPAINT"

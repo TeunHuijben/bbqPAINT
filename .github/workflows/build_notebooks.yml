@@ -6,7 +6,7 @@ on:
       - main
       - develop
     paths:
-      - 'src/mcoast/examples/raw/*.py'
+      - 'src/bbqpaint/examples/raw/*.py'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
 
       - name: Convert jupytext files to notebooks
         run: |
-          mkdir -p src/mcoast/examples/colab
+          mkdir -p src/bbqpaint/examples/colab
 
           # Create script to uncomment pip install in colab cells
           cat > /tmp/uncomment_colab.py << 'PYEOF'
@@ -48,7 +48,7 @@ jobs:
               f.write('\n')
           PYEOF
 
-          for file in src/mcoast/examples/raw/*.py; do
+          for file in src/bbqpaint/examples/raw/*.py; do
             filename=$(basename "$file" .py)
 
             # Skip the build helper script itself
@@ -60,15 +60,15 @@ jobs:
             jupytext --to notebook --output "/tmp/${filename}.ipynb" "$file"
 
             # Normal version (remove colab cells)
-            jupyter nbconvert "/tmp/${filename}.ipynb" --TagRemovePreprocessor.enabled=True --TagRemovePreprocessor.remove_cell_tags colab --to notebook --output "${filename}.ipynb" --output-dir src/mcoast/examples
+            jupyter nbconvert "/tmp/${filename}.ipynb" --TagRemovePreprocessor.enabled=True --TagRemovePreprocessor.remove_cell_tags colab --to notebook --output "${filename}.ipynb" --output-dir src/bbqpaint/examples
 
             # Colab version (keep all cells, uncomment pip install)
-            python3 /tmp/uncomment_colab.py "/tmp/${filename}.ipynb" "src/mcoast/examples/colab/${filename}.ipynb"
+            python3 /tmp/uncomment_colab.py "/tmp/${filename}.ipynb" "src/bbqpaint/examples/colab/${filename}.ipynb"
           done
 
       - name: Commit and push notebooks
         uses: EndBug/add-and-commit@v9
         with:
-          add: 'src/mcoast/examples/*.ipynb src/mcoast/examples/colab/*.ipynb'
+          add: 'src/bbqpaint/examples/*.ipynb src/bbqpaint/examples/colab/*.ipynb'
           message: '🤖 Auto-build Jupyter notebooks'
           default_author: github_actions

@@ -8,8 +8,8 @@ related parameter classes including analysis workflow and result calculation.
 import numpy as np
 import pytest
 
-from mcoast.analysis.parameter_estimation import ParameterEstimator
-from mcoast.analysis.parameters import (
+from bbqpaint.analysis.parameter_estimation import ParameterEstimator
+from bbqpaint.analysis.parameters import (
     AnalysisParameters,
     AnalysisResults,
     FittingBounds,

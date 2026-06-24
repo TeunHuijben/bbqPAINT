@@ -5,7 +5,7 @@ Tests for the simulation module.
 import numpy as np
 import pytest
 
-from mcoast.simulation import SimulationParameters, TraceGenerator, add_gaussian_noise
+from bbqpaint.simulation import SimulationParameters, TraceGenerator, add_gaussian_noise
 
 
 class TestSimulationParameters:
