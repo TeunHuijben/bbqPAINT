@@ -366,10 +366,9 @@ class Plotter:
         ax2 = plt.subplot(2, 3, 2)
         ax2.hist(
             intensity,
-            bins=50,
+            bins=np.linspace(np.min(intensity), np.max(intensity), 100),
             orientation="horizontal",
             color="skyblue",
-            edgecolor="black",
         )
         ax2.set_ylabel("Intensity (a.u.)")
         ax2.set_xlabel("Count")
@@ -432,38 +431,71 @@ class Plotter:
         if results.power_spectrum is not None:
             ax4 = plt.subplot(2, 3, 4)
 
-            # Normalize power spectrum values
-            ps_normalized = results.power_spectrum / np.mean(results.power_spectrum)
+            # Normalize each P_k by its EXPECTED (fitted) value P_k^(avg).
+            # The raw periodogram follows an exponential distribution
+            # around the Lorentzian fit, so P_k / P_k^(fit) ~ Exp(1).
+            n_points = len(intensity)
+            freq_vec = np.arange(1, len(results.power_spectrum) + 1) / (
+                n_points * analysis_params.dt
+            )
+            if results.k_sum_fit is not None and results.s2_fit is not None:
+                ps_analyzer = PowerSpectrumAnalyzer(
+                    dt=analysis_params.dt, n_chops=analysis_params.n_chops
+                )
+                k_vec = freq_vec * n_points * analysis_params.dt
+                theoretical_ps = ps_analyzer.calculate_theoretical_ps(
+                    k_vec,
+                    results.k_sum_fit,
+                    results.s2_fit,
+                    results.pk_bg_fit,
+                    n_points,
+                )
+                ps_normalized = results.power_spectrum / theoretical_ps
+            else:
+                ps_normalized = results.power_spectrum / np.mean(results.power_spectrum)
 
-            # Plot histogram
-            ax4.hist(
-                ps_normalized,
-                bins=30,
-                density=True,
-                alpha=0.7,
-                color="skyblue",
-                edgecolor="black",
-                label="Data",
+            bin_width = 1.0
+            bin_edges = np.arange(0, 11 + bin_width, bin_width)
+            bin_centers = bin_edges[:-1] + bin_width / 2
+            bin_counts, _ = np.histogram(ps_normalized, bins=bin_edges)
+
+            # Expected counts for an Exp(1) distribution (+/- Poisson error)
+            expected_counts = len(ps_normalized) * (
+                stats.expon.cdf(bin_edges[1:]) - stats.expon.cdf(bin_edges[:-1])
             )
 
-            # Plot theoretical exponential distribution
-            x = np.linspace(0, np.max(ps_normalized), 100)
-            ax4.plot(x, np.exp(-x), "r-", linewidth=2, label="Exp(-x)")
-
-            ax4.set_xlabel("Normalized Power Spectrum")
-            ax4.set_ylabel("Probability Density")
+            ax4.bar(
+                bin_centers,
+                bin_counts,
+                width=bin_width,
+                color="skyblue",
+                edgecolor="black",
+                label="$P_k/P_k^{(\\mathrm{avg})}$",
+            )
+            ax4.errorbar(
+                bin_centers,
+                expected_counts,
+                yerr=np.sqrt(expected_counts),
+                fmt=".",
+                color="red",
+                markersize=10,
+                linewidth=2,
+                label="Expected counts",
+            )
+            ax4.set_yscale("log")
+            ax4.set_xlabel("$P_k / P_k^{(\\mathrm{avg})}$")
+            ax4.set_ylabel("Counts")
             ax4.set_title("PS Value Distribution")
             ax4.legend()
             ax4.grid(True, alpha=0.3)
 
-        # Panel 5: Bispectrum (half experimental, half theoretical)
+        # Panels 5 & 6 share the FULL bispectrum (B_raw), its theoretical model
+        # (B_fit) and variance, so compute them once here.
         if results.bispectrum is not None:
-            ax5 = plt.subplot(2, 3, 5)
-
-            # Calculate FULL bispectrum for visualization
             chopped_traces = PowerSpectrumAnalyzer(
                 analysis_params.dt, analysis_params.n_chops
             ).chop_trace(intensity)
+            chop_length = chopped_traces.shape[0]
 
             bs_analyzer = BispectrumAnalyzer(dt=analysis_params.dt)
 
@@ -473,18 +505,8 @@ class Plotter:
                 chopped_traces, freq_max=freq_max_rad
             )
 
-            # Block for visualization (num_blocks_goal=75)
-            blocked_bs, blocked_f1, blocked_f2 = block_bispectrum(
-                bs_full,
-                freq_1_full,
-                freq_2_full,
-                num_blocks_goal=75,  # TODO: hardcoded value
-            )
-
-            # Calculate theoretical full bispectrum for comparison
-            if results.k_sum_fit is not None and results.c3_fit is not None:
-                chop_length = chopped_traces.shape[0]
-
+            have_fit = results.k_sum_fit is not None and results.c3_fit is not None
+            if have_fit:
                 # Convert freq matrices to k-indices for theoretical calculation
                 k1_indices = freq_1_full * chop_length * analysis_params.dt
                 k2_indices = freq_2_full * chop_length * analysis_params.dt
@@ -499,7 +521,29 @@ class Plotter:
                         chop_length,
                     )
                 )
+                bs_var_full = bs_analyzer.calculate_variance(
+                    k1_indices,
+                    k2_indices,
+                    analysis_params.n_chops,
+                    results.k_sum_fit,
+                    results.s2_fit,
+                    results.pk_bg_fit,
+                    chop_length,
+                )
 
+        # Panel 5: Bispectrum (half experimental, half theoretical)
+        if results.bispectrum is not None:
+            ax5 = plt.subplot(2, 3, 5)
+
+            # Block for visualization (num_blocks_goal=75)
+            blocked_bs, blocked_f1, blocked_f2 = block_bispectrum(
+                bs_full,
+                freq_1_full,
+                freq_2_full,
+                num_blocks_goal=75,  # TODO: hardcoded value
+            )
+
+            if have_fit:
                 # Block theoretical bispectrum
                 blocked_bs_theo, _, _ = block_bispectrum(
                     theoretical_bs_full, freq_1_full, freq_2_full, num_blocks_goal=75
@@ -546,30 +590,40 @@ class Plotter:
             cbar.set_label("[s$^2$]")
 
         # Panel 6: Bispectrum value distribution
-        if results.bispectrum is not None:
+        if results.bispectrum is not None and have_fit:
             ax6 = plt.subplot(2, 3, 6)
 
-            # Flatten bispectrum and normalize
-            bs_values = results.bispectrum.flatten()
-            bs_normalized = (bs_values - np.mean(bs_values)) / np.std(bs_values)
+            # Per-point z-score: (B_raw - B_fit) / sqrt(variance * L*dt/2).
+            # For the noise-dominated region this is standard normal, N(0,1).
+            cor_fac = chop_length * analysis_params.dt / 2
+            bs_normalized = (bs_full - theoretical_bs_full) / np.sqrt(
+                bs_var_full * cor_fac
+            )
+            bs_normalized = bs_normalized.flatten()
+            bs_normalized = bs_normalized[np.isfinite(bs_normalized)]
 
-            # Plot histogram
+            # 14 bins over the data range (15 edges)
+            edges = np.linspace(np.min(bs_normalized), np.max(bs_normalized), 15)
+            bin_width = edges[1] - edges[0]
+            counts, _ = np.histogram(bs_normalized, bins=edges)
+
             ax6.hist(
                 bs_normalized,
-                bins=30,
-                density=True,
-                alpha=0.7,
+                bins=edges,
                 color="skyblue",
                 edgecolor="black",
                 label="Data",
             )
 
-            # Plot theoretical normal distribution
-            x = np.linspace(np.min(bs_normalized), np.max(bs_normalized), 100)
-            ax6.plot(x, stats.norm.pdf(x, 0, 1), "r-", linewidth=2, label="N(0,1)")
+            # N(0,1) scaled from density to counts
+            x = np.linspace(-5, 5, 100)
+            gauss_counts = stats.norm.pdf(x, 0, 1) * bin_width * counts.sum()
+            ax6.plot(x, gauss_counts, "r-", linewidth=2, label="N(0,1)")
 
-            ax6.set_xlabel("Normalized Bispectrum")
-            ax6.set_ylabel("Probability Density")
+            ax6.set_xlim(-3, 3)
+            ax6.set_xticks(range(-3, 4))
+            ax6.set_xlabel("$(B - B^{\\mathrm{(avg)}})/\\sigma_B$")
+            ax6.set_ylabel("Counts")
             ax6.set_title("BS Value Distribution")
             ax6.legend()
             ax6.grid(True, alpha=0.3)
