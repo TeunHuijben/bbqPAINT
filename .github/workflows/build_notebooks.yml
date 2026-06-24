@@ -51,6 +51,11 @@ jobs:
           for file in src/mcoast/examples/raw/*.py; do
             filename=$(basename "$file" .py)
 
+            # Skip the build helper script itself
+            if [ "$filename" = "build_notebooks" ]; then
+              continue
+            fi
+
             # Convert to full notebook
             jupytext --to notebook --output "/tmp/${filename}.ipynb" "$file"
 
