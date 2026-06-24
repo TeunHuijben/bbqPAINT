@@ -2,8 +2,6 @@
 Tests for the result/parameter container methods (to_dict, print_summary, summary).
 """
 
-import numpy as np
-
 from bbqpaint.analysis.parameters import AnalysisResults
 from bbqpaint.simulation import SimulationParameters
 

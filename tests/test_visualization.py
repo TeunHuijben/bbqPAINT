@@ -14,8 +14,11 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pytest  # noqa: E402
 
-from bbqpaint.analysis.parameters import AnalysisParameters, AnalysisResults  # noqa: E402
 from bbqpaint.analysis.parameter_estimation import ParameterEstimator  # noqa: E402
+from bbqpaint.analysis.parameters import (  # noqa: E402
+    AnalysisParameters,
+    AnalysisResults,
+)
 from bbqpaint.simulation import SimulationParameters, TraceGenerator  # noqa: E402
 from bbqpaint.utils.visualization import Plotter  # noqa: E402
 

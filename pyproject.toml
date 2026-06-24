@@ -33,3 +33,13 @@ all = ["bbqpaint[dev]"]
 [project.urls]
 homepage = "https://github.com/TeunHuijben/bbqPAINT"
 repository = "https://github.com/TeunHuijben/bbqPAINT"
+
+[tool.coverage.run]
+relative_files = true
+source_pkgs = ["bbqpaint"]
+
+[tool.coverage.paths]
+# Map the installed package (site-packages) back to the repo source so
+# Codecov can match coverage to the checked-out files regardless of how
+# the package was installed (editable or not).
+source = ["src/bbqpaint", "*/site-packages/bbqpaint"]

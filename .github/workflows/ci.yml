@@ -26,10 +26,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -U pip
-          python -m pip install .[dev]
+          python -m pip install -e .[dev]
 
       - name: Test
-        run: pytest --color=yes --cov=src/bbqpaint --cov-report=xml
+        run: pytest --color=yes --cov=bbqpaint --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.12'
