@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bbqpaint"
-description = "Molecular counting from a single intensity trace"
+description = "bispectrum-based qPAINT: molecular counting from a single intensity trace"
 readme = "README.md"
 requires-python = ">=3.8,<3.13"
 license = { text = "BSD 3-Clause License" }
