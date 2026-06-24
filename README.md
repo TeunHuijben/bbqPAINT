@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/bbqpaint_logo.png" alt="bbqPAINT logo" width="300"/>
+</p>
+
 # bbqPAINT
 
 [![License](https://img.shields.io/github/license/TeunHuijben/bbqPAINT.svg?color=green)](https://github.com/TeunHuijben/bbqPAINT/raw/main/LICENSE)
